@@ -34,7 +34,7 @@ DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs
 APP_TITLE   :=  "Dungeon Escape"
-APP_DESCRIPTION := "You have been thrown in the King's Dungeon, now you must find your way out. You will Journey through the Dungeon, Castle, Town, and more."
+APP_DESCRIPTION := "You have been thrown in the Dungeon, find your way out."
 APP_AUTHOR  :=  "Matthew Rease"
 
 #---------------------------------------------------------------------------------

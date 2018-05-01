@@ -11,9 +11,48 @@ PrintConsole bottomScreen, versionWin, killBox, debugBox;
 
 FS_Archive sdmcArchive;
 
+/// Room items
+enum
+{
+	EMPTY = BIT(0),
+	COINS = BIT(1),
+	KILL = BIT(2)
+};
+
+class room {
+public:
+	u32 objects;
+	room(u32);
+};
+
+room::room(u32 fobjects) {
+	objects = fobjects;
+}
+
+class level {
+public:
+	int width;
+	int height;
+	std::vector<room> rooms;
+	level(int, int, std::vector<u32>);
+};
+
+level::level(int fwidth, int fheight, std::vector<u32> frooms) {
+	width = fwidth;
+	height = fheight;
+	rooms.resize(frooms.size());
+	for (int i = 0; i < frooms.size(); i++) {
+		rooms[i] = frooms[i];
+	}
+}
+
 //init
 std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
-std::string buildnumber = "18.04.22.1228";
+std::string buildnumber = "18.05.01.1142";
+
+std::vector<level> chapter1{
+	(2, 2, ((COINS), (COINS & KILL), (KILL), (EMPTY)))
+};
 
 /*open SD card filesystem*/
 void openSD()
@@ -41,11 +80,11 @@ bool touchInBox(touchPosition touch, int x, int y, int w, int h)
 
 int main(int argc, char **argv)
 {
-	debug_file = fopen("sdmc:/3ds/de_debug.txt", "w");
+	//debug_file = fopen("sdmc:/3ds/de_debug.txt", "w");
 	pp2d_init();
 	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 149, 149, 149));
-	romfsInit();
-	csndInit();
+	//romfsInit();
+	//csndInit();
 	//initSound();
 	//init_game_textures();
 
@@ -89,11 +128,15 @@ int main(int argc, char **argv)
 			std::cout << "Press X to see what I'm working on or have planned." << std::endl;
 			std::cout << "Press Y to open level editor." << std::endl << std::endl;
 
+			for (int i = 0; i < chapter1[0].rooms.size(); i++) {
+				std::cout << "room" << i << ": " << chapter1[0].rooms[i].objects << "\n";
+			}
+
 			bottom_screen_text = 1;
 		}
-		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+		/*pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 
-		pp2d_end_draw();
+		pp2d_end_draw();*/
 
 		hidTouchRead(&touch);
 
