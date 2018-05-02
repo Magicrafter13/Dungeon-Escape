@@ -14,18 +14,18 @@ FS_Archive sdmcArchive;
 /// Room items
 enum
 {
-	EMPTY = BIT(0),
-	COINS = BIT(1),
-	KILL = BIT(2)
+	EMPTY = "empty",
+	COINS = "coins",
+	KILL = "kill"
 };
 
 class room {
 public:
-	u32 objects;
-	room(u32);
+	std::vector<std::string> objects;
+	room(std::vector<std::string>);
 };
 
-room::room(u32 fobjects) {
+room::room(std::vector<std::string> fobjects) {
 	objects = fobjects;
 }
 
@@ -34,15 +34,15 @@ public:
 	int width;
 	int height;
 	std::vector<room> rooms;
-	level(int, int, std::vector<u32>);
+	level(int, int, std::vector<std::vector<std::string>>);
 };
 
-level::level(int fwidth, int fheight, std::vector<u32> frooms) {
+level::level(int fwidth, int fheight, std::vector<std::vector<std::string>> fdata) {
 	width = fwidth;
 	height = fheight;
-	rooms.resize(frooms.size());
-	for (int i = 0; i < frooms.size(); i++) {
-		rooms[i] = frooms[i];
+	rooms.resize(fdata.size());
+	for (int i = 0; i < fdata.size(); i++) {
+		rooms[i].objects = fdata[i];
 	}
 }
 
@@ -50,8 +50,17 @@ level::level(int fwidth, int fheight, std::vector<u32> frooms) {
 std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
 std::string buildnumber = "18.05.01.1142";
 
+std::vector<std::vector<std::string>> floor11{
+	{"coins"},
+	{"coins", "kill"},
+	{"kill"},
+	{"empty"}
+};
+
+level floor1(2, 2, floor11);
+
 std::vector<level> chapter1{
-	(2, 2, ((COINS), (COINS & KILL), (KILL), (EMPTY)))
+	level(2, 2, std::vector<std::vector<std::string>>{ {"coins"}, {"coins", "kill"}, {"kill"}, {"empty"}})
 };
 
 /*open SD card filesystem*/
@@ -129,7 +138,10 @@ int main(int argc, char **argv)
 			std::cout << "Press Y to open level editor." << std::endl << std::endl;
 
 			for (int i = 0; i < chapter1[0].rooms.size(); i++) {
-				std::cout << "room" << i << ": " << chapter1[0].rooms[i].objects << "\n";
+				std::cout << "room" << i << ": ";
+				for (int j = 0; j < chapter1[0].rooms[i].objects.size(); j++)
+					std::cout << chapter1[0].rooms[i].objects[j];
+				std::cout << "\n";
 			}
 
 			bottom_screen_text = 1;
