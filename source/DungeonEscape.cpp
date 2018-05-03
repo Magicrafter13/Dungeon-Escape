@@ -14,20 +14,21 @@ FS_Archive sdmcArchive;
 /// Room items
 enum
 {
-	EMPTY = "empty",
-	COINS = "coins",
-	KILL = "kill"
+	WALL = 0,
+	EMPTY = 1,
+	COINS = 2,
+	KILL = 3
 };
 
 class room {
 public:
 	std::vector<std::string> objects;
-	room(std::vector<std::string>);
+	//room(int, std::vector <std::string>);
 };
 
-room::room(std::vector<std::string> fobjects) {
-	objects = fobjects;
-}
+//room::room(int idc, std::vector<std::string> fobjects) {
+	//objects = fobjects;
+//}
 
 class level {
 public:
@@ -41,7 +42,7 @@ level::level(int fwidth, int fheight, std::vector<std::vector<std::string>> fdat
 	width = fwidth;
 	height = fheight;
 	rooms.resize(fdata.size());
-	for (int i = 0; i < fdata.size(); i++) {
+	for (u32 i = 0; i < fdata.size(); i++) {
 		rooms[i].objects = fdata[i];
 	}
 }
@@ -51,16 +52,16 @@ std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
 std::string buildnumber = "18.05.01.1142";
 
 std::vector<std::vector<std::string>> floor11{
-	{"coins"},
-	{"coins", "kill"},
-	{"kill"},
-	{"empty"}
+	{0, {"coins"}},
+	{0, {"coins", "kill"}},
+	{0, {"kill"}},
+	{0, {"empty"}}
 };
 
 level floor1(2, 2, floor11);
 
 std::vector<level> chapter1{
-	level(2, 2, std::vector<std::vector<std::string>>{ {"coins"}, {"coins", "kill"}, {"kill"}, {"empty"}})
+	//level(2, 2, std::vector<std::vector<std::string>>{ {"coins"}, {"coins", "kill"}, {"kill"}, {"empty"}})
 };
 
 /*open SD card filesystem*/
@@ -137,18 +138,20 @@ int main(int argc, char **argv)
 			std::cout << "Press X to see what I'm working on or have planned." << std::endl;
 			std::cout << "Press Y to open level editor." << std::endl << std::endl;
 
-			for (int i = 0; i < chapter1[0].rooms.size(); i++) {
+			for (u32 i = 0; i < chapter1[0].rooms.size(); i++) {
 				std::cout << "room" << i << ": ";
-				for (int j = 0; j < chapter1[0].rooms[i].objects.size(); j++)
+				for (u32 j = 0; j < chapter1[0].rooms[i].objects.size(); j++)
 					std::cout << chapter1[0].rooms[i].objects[j];
 				std::cout << "\n";
 			}
 
+			std::cout << (KILL & COINS) << "\n";
+
 			bottom_screen_text = 1;
 		}
-		/*pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 
-		pp2d_end_draw();*/
+		pp2d_end_draw();
 
 		hidTouchRead(&touch);
 
