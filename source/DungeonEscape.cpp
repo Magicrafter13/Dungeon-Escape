@@ -3,7 +3,7 @@
 
 FILE *debug_file;
 
-u32 kDown, kHeld;
+u32 kDown, kHeld, kUp;
 
 touchPosition touch;
 
@@ -17,51 +17,114 @@ enum
 	WALL = 0,
 	EMPTY = 1,
 	COINS = 2,
-	KILL = 3
+	KILL = 3,
+	WAY1INL = 4,
+	WAY1INR = 5,
+	WAY1INU = 6,
+	WAY1IND = 7,
+	WAY1OUTL = 8,
+	WAY1OUTR = 9,
+	WAY1OUTU = 10,
+	WAY1OUTD = 11,
+	WALL_L = 12,
+	WALL_R = 13,
+	WALL_U = 14,
+	WALL_D = 15,
+	START = 16,
+	SMALL_RIGHT = 17,
+	SMALL_LEFT = 18,
+	SMALL_UP = 19,
+	SMALL_DOWN = 20,
+	CRAWL_LR = 21,
+	CRAWL_UD = 22,
+	CRAWL_LU = 23,
+	CRAWL_LD = 24,
+	CRAWL_RU = 25,
+	CRAWL_RD = 26,
+	CRAWL_T_D = 27, //This means Left Right and Down (middle is down)
+	CRAWL_T_U = 28,
+	CRAWL_T_L = 29,
+	CRAWL_T_R = 30,
+	CRAWL_4 = 31,
+	LOCK_L = 32,
+	LOCK_R = 33,
+	LOCK_U = 34,
+	LOCK_D = 35
 };
 
 class room {
 public:
-	std::vector<std::string> objects;
-	//room(int, std::vector <std::string>);
+	std::vector<int> objects;
+	int activates_room;
+	room(std::vector<int>);
+	room(std::vector<int>, int);
 };
 
-//room::room(int idc, std::vector<std::string> fobjects) {
-	//objects = fobjects;
-//}
+room::room(std::vector<int> fobjects) {
+	objects = fobjects;
+}
+
+room::room(std::vector<int> fobjects, int fa_r) {
+	objects = fobjects;
+	activates_room = fa_r;
+}
 
 class level {
 public:
 	int width;
 	int height;
 	std::vector<room> rooms;
-	level(int, int, std::vector<std::vector<std::string>>);
+	level(int, int, std::vector<room>);
 };
 
-level::level(int fwidth, int fheight, std::vector<std::vector<std::string>> fdata) {
+level::level(int fwidth, int fheight, std::vector<room> fdata) {
 	width = fwidth;
 	height = fheight;
-	rooms.resize(fdata.size());
-	for (u32 i = 0; i < fdata.size(); i++) {
-		rooms[i].objects = fdata[i];
-	}
+	rooms = fdata;
 }
 
 //init
 std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
 std::string buildnumber = "18.05.01.1142";
 
-std::vector<std::vector<std::string>> floor11{
-	{0, {"coins"}},
-	{0, {"coins", "kill"}},
-	{0, {"kill"}},
-	{0, {"empty"}}
-};
-
-level floor1(2, 2, floor11);
-
 std::vector<level> chapter1{
-	//level(2, 2, std::vector<std::vector<std::string>>{ {"coins"}, {"coins", "kill"}, {"kill"}, {"empty"}})
+	level(8, 10, {
+		room({WALL}),
+		room({WALL}),
+		room({START}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}), //row 1
+		room({WALL}),
+		room({WALL}),
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}), //row 2
+		room({EMPTY, WALL_L, WALL_U}),
+		room({EMPTY, WALL_U, WALL_D}),
+		room({EMPTY, SMALL_RIGHT}),
+		room({EMPTY, CRAWL_LR}),
+		room({EMPTY, CRAWL_LD}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}), //row 3
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL}),
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL}),
+		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
+		room({EMPTY, WALL_U, LOCK_R}),
+		room({EMPTY, WALL_U, WALL_D, WALL_R}),
+		room({WALL}), //row 4
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL}),
+		room({})
+	})
 };
 
 /*open SD card filesystem*/
@@ -93,9 +156,8 @@ int main(int argc, char **argv)
 	//debug_file = fopen("sdmc:/3ds/de_debug.txt", "w");
 	pp2d_init();
 	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 149, 149, 149));
-	//romfsInit();
-	//csndInit();
-	//initSound();
+	romfsInit();
+	csndInit();
 	//init_game_textures();
 
 	//initialize_audio();
@@ -115,7 +177,9 @@ int main(int argc, char **argv)
 	while (aptMainLoop()) {
 		hidScanInput();
 		kDown = hidKeysDown();
-		if (kDown & KEY_START) break; // break in order to return to hbmenu
+		kHeld = hidKeysHeld();
+		kUp = hidKeysUp();
+		if (kDown & KEY_START) break;
 		if (bottom_screen_text == 0) {
 			consoleSelect(&killBox); consoleClear();
 			consoleSelect(&versionWin); consoleClear();
@@ -145,12 +209,11 @@ int main(int argc, char **argv)
 				std::cout << "\n";
 			}
 
-			std::cout << (KILL & COINS) << "\n";
-
 			bottom_screen_text = 1;
 		}
-		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 
+		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+		pp2d_draw_texture(0, 0, 0);
 		pp2d_end_draw();
 
 		hidTouchRead(&touch);
@@ -163,8 +226,8 @@ int main(int argc, char **argv)
 	}
 	// Exit services
 	pp2d_exit();
-
-	//exitSound();
+	romfsExit();
+	csndExit();
 
 	return 0;
 }

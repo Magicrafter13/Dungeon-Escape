@@ -12,6 +12,9 @@
 #include <3ds.h>
 #include <citro3d.h>
 #include "gfx/pp2d.h"
+#include "audio/filesystem.h"
+#include "audio/sfx.h"
+#include "file/file_access.hpp"
 #include <limits>
 #include <vector>
 
