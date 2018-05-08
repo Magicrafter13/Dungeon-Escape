@@ -18,46 +18,33 @@ enum
 	EMPTY = 1,
 	COINS = 2,
 	KILL = 3,
-	WAY1INL = 4,
-	WAY1INR = 5,
-	WAY1INU = 6,
-	WAY1IND = 7,
-	WAY1OUTL = 8,
-	WAY1OUTR = 9,
-	WAY1OUTU = 10,
-	WAY1OUTD = 11,
-	WALL_L = 12,
-	WALL_R = 13,
-	WALL_U = 14,
-	WALL_D = 15,
+	WAY1INL = 4, WAY1INR = 5, WAY1INU = 6, WAY1IND = 7,
+	WAY1OUTL = 8, WAY1OUTR = 9, WAY1OUTU = 10, WAY1OUTD = 11,
+	WALL_L = 12, WALL_R = 13, WALL_U = 14, WALL_D = 15,
 	START = 16,
-	SMALL_RIGHT = 17,
-	SMALL_LEFT = 18,
-	SMALL_UP = 19,
-	SMALL_DOWN = 20,
-	CRAWL_LR = 21,
-	CRAWL_UD = 22,
-	CRAWL_LU = 23,
-	CRAWL_LD = 24,
-	CRAWL_RU = 25,
-	CRAWL_RD = 26,
-	CRAWL_T_D = 27, //This means Left Right and Down (middle is down)
-	CRAWL_T_U = 28,
-	CRAWL_T_L = 29,
-	CRAWL_T_R = 30,
-	CRAWL_4 = 31,
-	LOCK_L = 32,
-	LOCK_R = 33,
-	LOCK_U = 34,
-	LOCK_D = 35
+	SMALL_RIGHT = 17, SMALL_LEFT = 18, SMALL_UP = 19, SMALL_DOWN = 20,
+	CRAWL_LR = 21, CRAWL_UD = 22, // - |
+	CRAWL_LU = 23, CRAWL_LD = 24, // -^ -.
+	CRAWL_RU = 25, CRAWL_RD = 26, // ^- .-
+	CRAWL_T_D = 27, CRAWL_T_U = 28, CRAWL_T_L = 29, CRAWL_T_R = 30, //This means Up Right and Down (middle is right)
+	CRAWL_4 = 31, // +
+	LOCK_L = 32, LOCK_R = 33, LOCK_U = 34, LOCK_D = 35,
+	PRESSURE_PLATE = 36,
+	UNLOCK_L = 37, UNLOCK_R = 38, UNLOCK_U = 39, UNLOCK_D = 40,
+	TELEPORT = 41
 };
 
 class room {
 public:
 	std::vector<int> objects;
 	int activates_room;
+	std::vector<int> before_activation;
+	std::vector<int> after_activation;
+	bool has_before_and_after = false;
+	std::string current_object_set = "before"; //set to toggle between before and after when activated
 	room(std::vector<int>);
 	room(std::vector<int>, int);
+	room(std::vector<int>, std::vector<int>);
 };
 
 room::room(std::vector<int> fobjects) {
@@ -67,6 +54,13 @@ room::room(std::vector<int> fobjects) {
 room::room(std::vector<int> fobjects, int fa_r) {
 	objects = fobjects;
 	activates_room = fa_r;
+}
+
+room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a) {
+	objects = fobjects_b;
+	before_activation = fobjects_b;
+	after_activation = fobjects_a;
+	has_before_and_after = true;
 }
 
 class level {
@@ -118,12 +112,25 @@ std::vector<level> chapter1{
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
 		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
-		room({EMPTY, WALL_U, LOCK_R}),
+		room({EMPTY, WALL_U, LOCK_R}, {EMPTY, WALL_U, UNLOCK_R}),
 		room({EMPTY, WALL_U, WALL_D, WALL_R}),
 		room({WALL}), //row 4
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
-		room({})
+		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}),
+		room({EMPTY, WALL_U, WALL_D}),
+		room({TELEPORT, WALL_U, WALL_R, WALL_D}),
+		room({EMPTY, CRAWL_UD}),
+		room({WALL}),
+		room({WALL}), //row 5
+		room({EMPTY, WALL_L, WALL_R}),
+		room({EMPTY, WALL_U, WALL_L, WALL_D}),
+		room({WALL}, {EMPTY, WALL_R, WALL_D}), //room 43 (42 + 1)
+		room({WALL_U, WALL_L, PRESSURE_PLATE}, 42),
+		room({EMPTY, WALL_U, WALL_D, SMALL_RIGHT}),
+		room({CRAWL_LU, PRESSURE_PLATE}, 29),
+		room({WALL}),
+		room({WALL}), //row 6
 	})
 };
 
