@@ -12,8 +12,7 @@ PrintConsole bottomScreen, versionWin, killBox, debugBox;
 FS_Archive sdmcArchive;
 
 /// Room items
-enum
-{
+enum room_items {
 	WALL = 0,
 	EMPTY = 1,
 	COINS = 2,
@@ -31,7 +30,15 @@ enum
 	LOCK_L = 32, LOCK_R = 33, LOCK_U = 34, LOCK_D = 35,
 	PRESSURE_PLATE = 36,
 	UNLOCK_L = 37, UNLOCK_R = 38, UNLOCK_U = 39, UNLOCK_D = 40,
-	TELEPORT = 41
+	TELEPORT = 41, NULL_TELEPORT = 42,
+	FORCE_U = 43, FORCE_D = 44, FORCE_L = 45, FORCE_R = 46,
+	EXIT = 47, POWERUP = 48, HIDDEN = 49
+};
+
+/// Powerups
+enum powerup_enum {
+	TINY = 0,
+	CROUCH = 1
 };
 
 class room {
@@ -42,18 +49,26 @@ public:
 	std::vector<int> after_activation;
 	bool has_before_and_after = false;
 	std::string current_object_set = "before"; //set to toggle between before and after when activated
+	int teleport_to;
+	int powerup[2];
 	room(std::vector<int>);
 	room(std::vector<int>, int);
 	room(std::vector<int>, std::vector<int>);
+	room(std::vector<int>, int[2]);
 };
 
 room::room(std::vector<int> fobjects) {
 	objects = fobjects;
 }
 
-room::room(std::vector<int> fobjects, int fa_r) {
+room::room(std::vector<int> fobjects, int linked) {
 	objects = fobjects;
-	activates_room = fa_r;
+	if (std::find(objects.begin(), objects.end(), TELEPORT) != objects.end()) {
+		teleport_to = linked;
+	}
+	if (std::find(objects.begin(), objects.end(), PRESSURE_PLATE) != objects.end()) {
+		activates_room = linked;
+	}
 }
 
 room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a) {
@@ -61,6 +76,12 @@ room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a) {
 	before_activation = fobjects_b;
 	after_activation = fobjects_a;
 	has_before_and_after = true;
+}
+
+room::room(std::vector<int> fobjects, int powerups[2]) {
+	objects = fobjects;
+	powerup[0] = powerups[0];
+	powerup[1] = powerups[1];
 }
 
 class level {
@@ -113,13 +134,13 @@ std::vector<level> chapter1{
 		room({WALL}),
 		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
 		room({EMPTY, WALL_U, LOCK_R}, {EMPTY, WALL_U, UNLOCK_R}),
-		room({EMPTY, WALL_U, WALL_D, WALL_R}),
+		room({EXIT, WALL_U, WALL_D, WALL_R}),
 		room({WALL}), //row 4
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
 		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}),
 		room({EMPTY, WALL_U, WALL_D}),
-		room({TELEPORT, WALL_U, WALL_R, WALL_D}),
+		room({TELEPORT, WALL_U, WALL_R, WALL_D}, 49),
 		room({EMPTY, CRAWL_UD}),
 		room({WALL}),
 		room({WALL}), //row 5
@@ -131,6 +152,38 @@ std::vector<level> chapter1{
 		room({CRAWL_LU, PRESSURE_PLATE}, 29),
 		room({WALL}),
 		room({WALL}), //row 6
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL_U, WALL_L, WALL_D, TELEPORT}, 36),
+		room({EMPTY, WALL_U, WALL_D}),
+		room({EMPTY, WALL_R, WALL_D}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL_U, WALL_L, WALL_R, FORCE_D}), //row 7
+		room({EMPTY, WALL_L, WALL_R}),
+		room({WALL}),
+		room({TELEPORT, WALL_L, WALL_U, WALL_R}, 55),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({PRESSURE_PLATE, WALL_L, WALL_R}, 65), //row 8
+		room({EMPTY, WALL_L, WALL_D}),
+		room({EMPTY}, {EMPTY, WALL_L, WALL_R}),
+		room({EMPTY}),
+		room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({TELEPORT, WALL_L, WALL_D, WALL_R}, 10), //row 9
+		room({WALL}),
+		room({WALL}),
+		room({WALL_L, WALL_D, WALL_R, POWERUP}, new int[2]{TINY, 3}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}),
+		room({WALL}) //row 10
 	})
 };
 

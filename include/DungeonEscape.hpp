@@ -17,6 +17,7 @@
 #include "file/file_access.hpp"
 #include <limits>
 #include <vector>
+#include <algorithm>
 
 #define ANSI "\x1b["
 #define RED "31"
