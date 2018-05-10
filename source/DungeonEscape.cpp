@@ -11,6 +11,8 @@ PrintConsole bottomScreen, versionWin, killBox, debugBox;
 
 FS_Archive sdmcArchive;
 
+size_t protected_textures = 0, textures = 0;
+
 /// Room items
 enum room_items {
 	WALL = 0,
@@ -211,6 +213,18 @@ bool touchInBox(touchPosition touch, int x, int y, int w, int h)
 		return false;
 }
 
+void load_textures_p() {
+	//load textures and add to protected_textures
+}
+
+void load_textures() {
+	pp2d_load_texture_png(protected_textures, "romfs:/sprites/wall_l.png");
+}
+
+void unload_textures() {
+	//unload game textures
+}
+
 int main(int argc, char **argv)
 {
 	//debug_file = fopen("sdmc:/3ds/de_debug.txt", "w");
@@ -273,6 +287,15 @@ int main(int argc, char **argv)
 		}
 
 		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+		int temp = 0;
+		for (int x = 0; x < chapter1[0].width; x++) {
+			for (int y = 0; y < chapter1[0].height; y++) {
+				//if (chapter1[0].rooms[temp].hasObject())
+				if (std::find(chapter1[0].rooms[temp].objects.begin(), chapter1[0].rooms[temp].objects.end(), WALL_L) != chapter1[0].rooms[temp].objects.end())
+					pp2d_draw_texture(0, 16 * x, 16 * y);
+				temp++;
+			}
+		}
 		pp2d_draw_texture(0, 0, 0);
 		pp2d_end_draw();
 
