@@ -218,7 +218,10 @@ void load_textures_p() {
 }
 
 void load_textures() {
-	pp2d_load_texture_png(protected_textures, "romfs:/sprites/wall_l.png");
+	pp2d_load_texture_png(protected_textures + textures, "romfs:/sprites/wall_l.png");
+	textures++;
+	pp2d_load_texture_png(protected_textures + textures, "romfs:/sprites/wall.png");
+	textures++;
 }
 
 void unload_textures() {
@@ -232,7 +235,8 @@ int main(int argc, char **argv)
 	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 149, 149, 149));
 	romfsInit();
 	csndInit();
-	//init_game_textures();
+	load_textures_p();
+	load_textures();
 
 	//initialize_audio();
 
@@ -276,10 +280,10 @@ int main(int argc, char **argv)
 			std::cout << "Press X to see what I'm working on or have planned." << std::endl;
 			std::cout << "Press Y to open level editor." << std::endl << std::endl;
 
-			for (u32 i = 0; i < chapter1[0].rooms.size(); i++) {
+			for (u32 i = 0; i < chapter1[0].rooms.size() - 60; i++) {
 				std::cout << "room" << i << ": ";
 				for (u32 j = 0; j < chapter1[0].rooms[i].objects.size(); j++)
-					std::cout << chapter1[0].rooms[i].objects[j];
+					std::cout << chapter1[0].rooms[i].objects[j] << ", ";
 				std::cout << "\n";
 			}
 
@@ -288,11 +292,13 @@ int main(int argc, char **argv)
 
 		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 		int temp = 0;
-		for (int x = 0; x < chapter1[0].width; x++) {
-			for (int y = 0; y < chapter1[0].height; y++) {
+		for (int y = 0; y < chapter1[0].height; y++) {
+			for (int x = 0; x < chapter1[0].width; x++) {
 				//if (chapter1[0].rooms[temp].hasObject())
 				if (std::find(chapter1[0].rooms[temp].objects.begin(), chapter1[0].rooms[temp].objects.end(), WALL_L) != chapter1[0].rooms[temp].objects.end())
 					pp2d_draw_texture(0, 16 * x, 16 * y);
+				if (std::find(chapter1[0].rooms[temp].objects.begin(), chapter1[0].rooms[temp].objects.end(), WALL) != chapter1[0].rooms[temp].objects.end())
+					pp2d_draw_texture(1, 16 * x, 16 * y);
 				temp++;
 			}
 		}
@@ -308,6 +314,7 @@ int main(int argc, char **argv)
 		}
 	}
 	// Exit services
+	unload_textures();
 	pp2d_exit();
 	romfsExit();
 	csndExit();
