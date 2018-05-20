@@ -13,6 +13,9 @@ FS_Archive sdmcArchive;
 
 size_t protected_textures = 0, textures = 0;
 
+std::string error_code;
+std::string error_message;
+
 int game();
 
 /// Room items
@@ -57,7 +60,9 @@ lock_lID, lock_rID, lock_uID, lock_dID,
 pressure_plateID,
 teleportID, null_teleportID,
 force_uID, force_dID, force_lID, force_rID,
-exitID, powerupID, hiddenID, playerID;
+exitID, powerupID, hiddenID, playerID,
+pause_scr, ps_0, ps_1, ps_2, ps_3, titleID;
+std::vector<size_t> ps_arrow(4);
 
 /// Powerups
 enum powerup_enum {
@@ -265,6 +270,47 @@ bool touchInBox(touchPosition touch, int x, int y, int w, int h)
 }
 
 void load_textures_p() {
+	size_t id = 0;
+	size_t i = id;
+	std::vector<std::string> pause_images = {
+		"",
+		"_text_0",
+		"_text_1",
+		"_text_2",
+		"_text_3",
+		"_arrow_0",
+		"_arrow_1",
+		"_arrow_2",
+		"_arrow_3"
+	};
+	std::vector<size_t*> pause_images_p = {
+		&pause_scr,
+		&ps_0,
+		&ps_1,
+		&ps_2,
+		&ps_3,
+		&ps_arrow[0],
+		&ps_arrow[1],
+		&ps_arrow[2],
+		&ps_arrow[3]
+	};
+	for (id = i; id < i + pause_images.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/temp_pausescreen" + pause_images[id - i] + ".png").c_str());
+		*pause_images_p[id - i] = id;
+		protected_textures++;
+	}
+	i = id;
+	std::vector<std::string> title_screen = {
+		"title"
+	};
+	std::vector<size_t*> title_screen_p = {
+		&titleID
+	};
+	for (id = i; id < i + title_screen.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/" + title_screen[id - i] + ".png").c_str());
+		*title_screen_p[id - i] = id;
+		protected_textures++;
+	}
 	//load textures and add to protected_textures
 }
 
@@ -351,8 +397,13 @@ void load_textures() {
 player player1(-1, -1, 0);
 
 void unload_textures() {
-	//unload game textures
+	for (size_t i = protected_textures; i < protected_textures + textures; i++)
+		pp2d_free_texture(i);
 }
+
+bool paused = false;
+int paused_selection = 0;
+std::string paused_level = "top";
 
 int main(int argc, char **argv)
 {
@@ -407,6 +458,51 @@ int main(int argc, char **argv)
 				ret_val = game();
 			if (ret_val == 2)
 				break;
+			if (ret_val == 3) {
+				//error found
+				consoleSelect(&bottomScreen); consoleClear();
+				std::cout << ANSI B_BLUE CEND;
+				for (int i = 0; i < 1120; i++)
+					std::cout << " ";
+				std::cout << ANSI B_RED CEND;
+				for (int i = 0; i < 80; i++)
+					std::cout << " ";
+				std::cout << PRESET ANSI B_BLUE ASEP WHITE CEND;
+				std::cout << "Dungeon Escape has encountered an error.\n\n";
+				std::cout << ANSI B_BLUE ASEP RED CEND;
+				std::cout << "Err Code: " << error_code << "\n\n";
+				std::cout << "Message: " << error_message << "\n\n";
+				std::cout << ANSI B_BLUE ASEP WHITE CEND;
+				std::cout << "Please go to our GitHub page: https://github.com/Magicrafter13/Dungeon-Escape \n";
+				std::cout << "And submit a new issue on the issues\npage.\n";
+				std::cout << "(Unless this is already a known issue.)\n";
+				std::cout << "Also, make sure to provide the exact \nsteps to recreate this error/glitch.\n";
+				std::cout << "     Thank you for your time, and sorry about this error.\n\n";
+				std::cout << "Press any key, or tap the bottom most area of the screen to exit the program.\n";
+				bool ready_exit = false;
+				while (!ready_exit) {
+					hidScanInput();
+					kDown = hidKeysDown();
+					pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+					pp2d_draw_texture(0, 400, 240);
+					pp2d_end_draw();
+					if (kDown & (KEY_A | KEY_B | KEY_Y | KEY_X | KEY_L | KEY_R | KEY_ZL | KEY_ZR | KEY_SELECT | KEY_START | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
+						ready_exit = true;
+
+					hidTouchRead(&touch);
+
+					/*exit game if red box touched*/
+					if (touchInBox(touch, 0, 224, 320, 16)) {
+						std::cout << "Exiting...\n";
+						ready_exit = true;
+					}
+				}
+				break;
+			}
+			paused = false;
+			paused_level = "top";
+			paused_selection = 0;
+			bottom_screen_text = 0;
 		}
 		if (bottom_screen_text == 0) {
 			consoleSelect(&killBox); consoleClear();
@@ -442,6 +538,10 @@ int main(int argc, char **argv)
 			bottom_screen_text = 1;
 		}
 
+		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+		pp2d_draw_texture(titleID, 0, 0);
+		pp2d_end_draw();
+
 		hidTouchRead(&touch);
 
 		/*exit game if red box touched*/
@@ -459,7 +559,34 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+int paused_action(int action) {
+	if (paused_level == "top") {
+		if (action == 3) {
+			return 1;
+		}
+		else {
+			error_code = "ps-act_top_act_invalid";
+			error_message = "Invalid pause menu action.";
+			return 3;
+		}
+	}
+	else {
+		error_code = "ps-act_lvl_invalid";
+		error_message = "Invalid pause menu level.";
+		return 3;
+	}
+	//else
+}
+
+void paused_return_level() {
+	if (paused_level == "top") {
+		paused = false;
+		paused_selection = 0;
+	}
+}
+
 int game() {
+	int ret_val = 0;
 	pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 	pp2d_draw_texture(playerID, 12 * 16, 7 * 16); //(13, 8)
 	int temp = 0;
@@ -524,6 +651,14 @@ int game() {
 			temp++;
 		}
 	}
+	if (paused) {
+		pp2d_draw_texture(pause_scr, 0, 0);
+		pp2d_draw_texture(ps_0, 99, 0);
+		pp2d_draw_texture(ps_1, 99, 0);
+		pp2d_draw_texture(ps_2, 99, 0);
+		pp2d_draw_texture(ps_3, 99, 0);
+		pp2d_draw_texture(ps_arrow[paused_selection], 99, 0);
+	}
 	pp2d_end_draw();
 
 	hidTouchRead(&touch);
@@ -537,36 +672,61 @@ int game() {
 	hidScanInput();
 	kDown = hidKeysDown();
 
-	if (kDown & KEY_START)
-		return 2;
-
-	if (kDown & KEY_LEFT) {
-		if (!chapter1[0].rooms[player1.location].hasObject(WALL_L)) {
-			player1.x--;
-			player1.location -= 1;
-		}
-		else {
-			//play sound?
-		}
-	}
-	else if (kDown & KEY_RIGHT) {
-		if (!chapter1[0].rooms[player1.location].hasObject(WALL_R)) {
-			player1.x++;
-			player1.location += 1;
-		}
-	}
-	else if (kDown & KEY_UP) {
-		if (!chapter1[0].rooms[player1.location].hasObject(WALL_U)) {
-			player1.y--;
-			player1.location -= chapter1[0].width;
-		}
-	}
-	else if (kDown & KEY_DOWN) {
-		if (!chapter1[0].rooms[player1.location].hasObject(WALL_D)) {
-			player1.y++;
-			player1.location += chapter1[0].width;
+	if (kDown & KEY_START) {
+		paused = (paused ? false : true);
+		if (!paused) {
+			paused_selection = 0;
+			paused_level = "top";
 		}
 	}
 
-	return 0;
+	if (paused) {
+		if (kDown & KEY_UP) {
+			paused_selection--;
+			if (paused_selection == -1)
+				paused_selection = 3;
+		}
+		else if (kDown & KEY_DOWN) {
+			paused_selection++;
+			if (paused_selection == 4)
+				paused_selection = 0;
+		}
+		else if (kDown & KEY_A) {
+			ret_val = paused_action(paused_selection);
+		}
+		else if (kDown & KEY_B) {
+			paused_return_level();
+		}
+	}
+	else {
+		if (kDown & KEY_LEFT) {
+			if (!chapter1[0].rooms[player1.location].hasObject(WALL_L)) {
+				player1.x--;
+				player1.location -= 1;
+			}
+			else {
+				//play sound?
+			}
+		}
+		else if (kDown & KEY_RIGHT) {
+			if (!chapter1[0].rooms[player1.location].hasObject(WALL_R)) {
+				player1.x++;
+				player1.location += 1;
+			}
+		}
+		else if (kDown & KEY_UP) {
+			if (!chapter1[0].rooms[player1.location].hasObject(WALL_U)) {
+				player1.y--;
+				player1.location -= chapter1[0].width;
+			}
+		}
+		else if (kDown & KEY_DOWN) {
+			if (!chapter1[0].rooms[player1.location].hasObject(WALL_D)) {
+				player1.y++;
+				player1.location += chapter1[0].width;
+			}
+		}
+	}
+
+	return ret_val;
 }
