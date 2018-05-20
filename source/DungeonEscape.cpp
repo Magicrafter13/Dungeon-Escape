@@ -13,6 +13,8 @@ FS_Archive sdmcArchive;
 
 size_t protected_textures = 0, textures = 0;
 
+int game();
+
 /// Room items
 enum room_items {
 	WALL = 0,
@@ -37,6 +39,26 @@ enum room_items {
 	EXIT = 47, POWERUP = 48, HIDDEN = 49
 };
 
+size_t
+wallID,
+coinsID,
+killID,
+way1inlID, way1inrID, way1inuID, way1indID,
+way1outlID, way1outrID, way1outuID, way1outdID,
+wall_lID, wall_rID, wall_uID, wall_dID,
+wall_connector_lID, wall_connector_rID, wall_connector_uID, wall_connector_dID,
+startID,
+crawl_lrID, crawl_udID,
+crawl_luID, crawl_ldID,
+crawl_ruID, crawl_rdID,
+crawl_t_dID, crawl_t_uID, crawl_t_lID, crawl_t_rID,
+crawl_4ID,
+lock_lID, lock_rID, lock_uID, lock_dID,
+pressure_plateID,
+teleportID, null_teleportID,
+force_uID, force_dID, force_lID, force_rID,
+exitID, powerupID, hiddenID, playerID;
+
 /// Powerups
 enum powerup_enum {
 	TINY = 0,
@@ -57,6 +79,9 @@ public:
 	room(std::vector<int>, int);
 	room(std::vector<int>, std::vector<int>);
 	room(std::vector<int>, int[2]);
+	bool hasObject(int object) {
+		return (std::find(objects.begin(), objects.end(), object) != objects.end());
+	}
 };
 
 room::room(std::vector<int> fobjects) {
@@ -100,6 +125,28 @@ level::level(int fwidth, int fheight, std::vector<room> fdata) {
 	rooms = fdata;
 }
 
+class player {
+	int default_x;
+	int default_y;
+	int default_texture;
+public:
+	int x;
+	int y;
+	int texture;
+	player(int, int, int);
+	void reset() {
+		x = default_x;
+		y = default_y;
+		texture = default_texture;
+	}
+};
+
+player::player(int fx, int fy, int ftexture) {
+	x = fx; default_x = fx;
+	y = fy; default_y = fy;
+	texture = ftexture; default_texture = ftexture;
+}
+
 //init
 std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
 std::string buildnumber = "18.05.01.1142";
@@ -108,7 +155,7 @@ std::vector<level> chapter1{
 	level(8, 10, {
 		room({WALL}),
 		room({WALL}),
-		room({START}),
+		room({START, WALL_L, WALL_U, WALL_R}),
 		room({WALL}),
 		room({WALL}),
 		room({WALL}),
@@ -171,7 +218,7 @@ std::vector<level> chapter1{
 		room({WALL}),
 		room({PRESSURE_PLATE, WALL_L, WALL_R}, 65), //row 8
 		room({EMPTY, WALL_L, WALL_D}),
-		room({EMPTY}, {EMPTY, WALL_L, WALL_R}),
+		room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}),
 		room({EMPTY}),
 		room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
 		room({WALL}),
@@ -218,11 +265,86 @@ void load_textures_p() {
 }
 
 void load_textures() {
-	pp2d_load_texture_png(protected_textures + textures, "romfs:/sprites/wall_l.png");
-	textures++;
-	pp2d_load_texture_png(protected_textures + textures, "romfs:/sprites/wall.png");
-	textures++;
+	size_t id = protected_textures;
+	size_t i = id;
+	std::vector<std::string> walls = {
+		"_l",
+		"_r",
+		"_u",
+		"_d",
+		"",
+		"_connector_l",
+		"_connector_r",
+		"_connector_u",
+		"_connector_d"
+	};
+	std::vector<size_t*> walls_p = {
+		&wall_lID,
+		&wall_rID,
+		&wall_uID,
+		&wall_dID,
+		&wallID,
+		&wall_connector_lID,
+		&wall_connector_rID,
+		&wall_connector_uID,
+		&wall_connector_dID
+	};
+	for (id = i; id < i + walls.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/wall" + walls[id - i] + ".png").c_str());
+		*walls_p[id - i] = id;
+		textures++;
+	}
+	i = id;
+	std::vector<std::string> crawl_space = {
+		"_lr",
+		"_ud",
+		"_lu",
+		"_ld",
+		"_ru",
+		"_rd",
+		"_4"
+	};
+	std::vector<size_t*> crawl_space_p = {
+		&crawl_lrID,
+		&crawl_udID,
+		&crawl_luID,
+		&crawl_ldID,
+		&crawl_ruID,
+		&crawl_rdID,
+		&crawl_4ID
+	};
+	for (id = i; id < i + crawl_space.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/crawl" + crawl_space[id - i] + ".png").c_str());
+		*crawl_space_p[id - i] = id;
+		textures++;
+	}
+	i = id;
+	std::vector<std::string> misc = {
+		"pressure_plate",
+		"lock_l",
+		"lock_r",
+		"lock_u",
+		"lock_d",
+		"teleport",
+		"player"
+	};
+	std::vector<size_t*> misc_p = {
+		&pressure_plateID,
+		&lock_lID,
+		&lock_rID,
+		&lock_uID,
+		&lock_dID,
+		&teleportID,
+		&playerID
+	};
+	for (id = i; id < i + misc.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
+		*misc_p[id - i] = id;
+		textures++;
+	}
 }
+
+player player1(-1, -1, 0);
 
 void unload_textures() {
 	//unload game textures
@@ -257,7 +379,30 @@ int main(int argc, char **argv)
 		kDown = hidKeysDown();
 		kHeld = hidKeysHeld();
 		kUp = hidKeysUp();
-		if (kDown & KEY_START) break;
+		if (kDown & KEY_START) {
+			player1.reset();
+			player1.texture = playerID;
+			int temp = 0, tempX = 0, tempY = 0;
+			while (player1.x == -1) {
+				if (chapter1[0].rooms[temp].hasObject(START)) {
+					player1.x = tempX;
+					player1.y = tempY;
+				}
+				else {
+					temp++;
+					tempX++;
+					if (tempX >= chapter1[0].width) {
+						tempX = 0;
+						tempY++;
+					}
+				}
+			}
+			int ret_val = 0;
+			while (ret_val == 0)
+				ret_val = game();
+			if (ret_val == 2)
+				break;
+		}
 		if (bottom_screen_text == 0) {
 			consoleSelect(&killBox); consoleClear();
 			consoleSelect(&versionWin); consoleClear();
@@ -287,23 +432,10 @@ int main(int argc, char **argv)
 				std::cout << "\n";
 			}
 
+			std::cout << wall_lID << " " << wall_rID << " " << wall_uID << " " << wall_dID << " " << wallID << "\n";
+
 			bottom_screen_text = 1;
 		}
-
-		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
-		int temp = 0;
-		for (int y = 0; y < chapter1[0].height; y++) {
-			for (int x = 0; x < chapter1[0].width; x++) {
-				//if (chapter1[0].rooms[temp].hasObject())
-				if (std::find(chapter1[0].rooms[temp].objects.begin(), chapter1[0].rooms[temp].objects.end(), WALL_L) != chapter1[0].rooms[temp].objects.end())
-					pp2d_draw_texture(0, 16 * x, 16 * y);
-				if (std::find(chapter1[0].rooms[temp].objects.begin(), chapter1[0].rooms[temp].objects.end(), WALL) != chapter1[0].rooms[temp].objects.end())
-					pp2d_draw_texture(1, 16 * x, 16 * y);
-				temp++;
-			}
-		}
-		pp2d_draw_texture(0, 0, 0);
-		pp2d_end_draw();
 
 		hidTouchRead(&touch);
 
@@ -318,6 +450,110 @@ int main(int argc, char **argv)
 	pp2d_exit();
 	romfsExit();
 	csndExit();
+
+	return 0;
+}
+
+int game() {
+	pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+	pp2d_draw_texture(playerID, 12 * 16, 7 * 16); //(13, 8)
+	int temp = 0;
+	for (int y = 0; y < chapter1[0].height; y++) {
+		for (int x = 0; x < chapter1[0].width; x++) {
+			int rel_x = 12 - (player1.x - x);
+			int rel_y = 7 - (player1.y - y);
+			if (chapter1[0].rooms[temp].hasObject(WALL_L)) {
+				pp2d_draw_texture(wall_lID, rel_x * 16, rel_y * 16);
+				if (chapter1[0].rooms[temp - chapter1[0].width].hasObject(WALL_L))
+					pp2d_draw_texture(wall_connector_lID, rel_x * 16, (rel_y * 16) - 2);
+			}
+			if (chapter1[0].rooms[temp].hasObject(WALL_R)) {
+				pp2d_draw_texture(wall_rID, 16 * rel_x, 16 * rel_y);
+				if (chapter1[0].rooms[temp - chapter1[0].width].hasObject(WALL_R))
+					pp2d_draw_texture(wall_connector_rID, (rel_x * 16) + 13, (rel_y * 16) - 2);
+			}
+			if (chapter1[0].rooms[temp].hasObject(WALL_U)) {
+				pp2d_draw_texture(wall_uID, 16 * rel_x, 16 * rel_y);
+				if (chapter1[0].rooms[temp - 1].hasObject(WALL_U))
+					pp2d_draw_texture(wall_connector_uID, (rel_x * 16) - 2, rel_y * 16);
+			}
+			if (chapter1[0].rooms[temp].hasObject(WALL_D)) {
+				pp2d_draw_texture(wall_dID, 16 * rel_x, 16 * rel_y);
+				if (chapter1[0].rooms[temp - 1].hasObject(WALL_D))
+					pp2d_draw_texture(wall_connector_dID, (rel_x * 16) - 2, (rel_y * 16) + 13);
+			}
+			if (chapter1[0].rooms[temp].hasObject(WALL))
+				pp2d_draw_texture(wallID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_LR))
+				pp2d_draw_texture(crawl_lrID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_UD))
+				pp2d_draw_texture(crawl_udID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_LU))
+				pp2d_draw_texture(crawl_luID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_LD))
+				pp2d_draw_texture(crawl_ldID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_RU))
+				pp2d_draw_texture(crawl_ruID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(CRAWL_RD))
+				pp2d_draw_texture(crawl_rdID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(PRESSURE_PLATE))
+				pp2d_draw_texture(pressure_plateID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(LOCK_L)) {
+				pp2d_draw_texture(lock_lID, 16 * rel_x, 16 * rel_y);
+				pp2d_draw_texture(lock_rID, 16 * (rel_x - 1), 16 * rel_y);
+			}
+			if (chapter1[0].rooms[temp].hasObject(LOCK_R)) {
+				pp2d_draw_texture(lock_rID, 16 * rel_x, 16 * rel_y);
+				pp2d_draw_texture(lock_lID, 16 * (rel_x + 1), 16 * rel_y);
+			}
+			if (chapter1[0].rooms[temp].hasObject(LOCK_U)) {
+				pp2d_draw_texture(lock_uID, 16 * rel_x, 16 * rel_y);
+				pp2d_draw_texture(lock_dID, 16 * rel_x, 16 * (rel_y - 1));
+			}
+			if (chapter1[0].rooms[temp].hasObject(LOCK_D)) {
+				pp2d_draw_texture(lock_dID, 16 * rel_x, 16 * rel_y);
+				pp2d_draw_texture(lock_uID, 16 * rel_x, 16 * (rel_y + 1));
+			}
+			if (chapter1[0].rooms[temp].hasObject(TELEPORT))
+				pp2d_draw_texture(teleportID, 16 * rel_x, 16 * rel_y);
+			temp++;
+		}
+	}
+	pp2d_end_draw();
+
+	hidTouchRead(&touch);
+
+	/*exit game if red box touched*/
+	if (touchInBox(touch, 0, 224, 320, 16)) {
+		std::cout << "Exiting...\n";
+		return 2;
+	}
+
+	hidScanInput();
+	kDown = hidKeysDown();
+
+	if (kDown & KEY_START)
+		return 2;
+
+	int tempX = 0, tempY = 0;
+	for (tempY = 0; tempY < player1.y; tempY++)
+		for (tempX = 0; tempX < player1.x; tempX++)
+			temp++;
+	if (kDown & KEY_LEFT)
+		if (!chapter1[0].rooms[temp].hasObject(WALL_L))
+			player1.x--;
+		//else {
+			//play sound?
+		//}
+	/*else*/ if (kDown & KEY_RIGHT)
+		//if (!chapter1[0].rooms[temp].hasObject(WALL_R))
+			player1.x++;
+	/*else*/ if (kDown & KEY_UP)
+		//if (!chapter1[0].rooms[temp].hasObject(WALL_U))
+			player1.y--;
+	/*else*/ if (kDown & KEY_DOWN)
+		//if (!chapter1[0].rooms[temp].hasObject(WALL_D))
+			player1.y++;
 
 	return 0;
 }
