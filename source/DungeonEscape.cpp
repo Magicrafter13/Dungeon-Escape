@@ -129,15 +129,18 @@ class player {
 	int default_x;
 	int default_y;
 	int default_texture;
+	int default_location;
 public:
 	int x;
 	int y;
 	int texture;
+	int location; //(easy for mapping, instead of using x and y, just use how far into the level's vector the player is)
 	player(int, int, int);
 	void reset() {
 		x = default_x;
 		y = default_y;
 		texture = default_texture;
+		location = default_location;
 	}
 };
 
@@ -145,6 +148,7 @@ player::player(int fx, int fy, int ftexture) {
 	x = fx; default_x = fx;
 	y = fy; default_y = fy;
 	texture = ftexture; default_texture = ftexture;
+	location = 0; default_location = 0;
 }
 
 //init
@@ -387,6 +391,7 @@ int main(int argc, char **argv)
 				if (chapter1[0].rooms[temp].hasObject(START)) {
 					player1.x = tempX;
 					player1.y = tempY;
+					player1.location = temp;
 				}
 				else {
 					temp++;
@@ -535,25 +540,33 @@ int game() {
 	if (kDown & KEY_START)
 		return 2;
 
-	int tempX = 0, tempY = 0;
-	for (tempY = 0; tempY < player1.y; tempY++)
-		for (tempX = 0; tempX < player1.x; tempX++)
-			temp++;
-	if (kDown & KEY_LEFT)
-		if (!chapter1[0].rooms[temp].hasObject(WALL_L))
+	if (kDown & KEY_LEFT) {
+		if (!chapter1[0].rooms[player1.location].hasObject(WALL_L)) {
 			player1.x--;
-		//else {
+			player1.location -= 1;
+		}
+		else {
 			//play sound?
-		//}
-	/*else*/ if (kDown & KEY_RIGHT)
-		//if (!chapter1[0].rooms[temp].hasObject(WALL_R))
+		}
+	}
+	else if (kDown & KEY_RIGHT) {
+		if (!chapter1[0].rooms[player1.location].hasObject(WALL_R)) {
 			player1.x++;
-	/*else*/ if (kDown & KEY_UP)
-		//if (!chapter1[0].rooms[temp].hasObject(WALL_U))
+			player1.location += 1;
+		}
+	}
+	else if (kDown & KEY_UP) {
+		if (!chapter1[0].rooms[player1.location].hasObject(WALL_U)) {
 			player1.y--;
-	/*else*/ if (kDown & KEY_DOWN)
-		//if (!chapter1[0].rooms[temp].hasObject(WALL_D))
+			player1.location -= chapter1[0].width;
+		}
+	}
+	else if (kDown & KEY_DOWN) {
+		if (!chapter1[0].rooms[player1.location].hasObject(WALL_D)) {
 			player1.y++;
+			player1.location += chapter1[0].width;
+		}
+	}
 
 	return 0;
 }
