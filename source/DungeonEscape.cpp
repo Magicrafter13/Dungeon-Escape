@@ -87,6 +87,20 @@ public:
 	bool hasObject(int object) {
 		return (std::find(objects.begin(), objects.end(), object) != objects.end());
 	}
+	bool hasObjectsAnd(std::vector<int> object) {
+		bool it_does = true;
+		for (unsigned int i = 0; i < object.size(); i++)
+			if (!hasObject(object[i]))
+				it_does = false;
+		return it_does;
+	}
+	bool hasObjectsOr(std::vector<int> object) {
+		bool has_one = false;
+		for (unsigned int i = 0; i < object.size(); i++)
+			if (hasObject(object[i]))
+				has_one = true;
+		return has_one;
+	}
 };
 
 room::room(std::vector<int> fobjects) {
@@ -140,12 +154,14 @@ public:
 	int y;
 	int texture;
 	int location; //(easy for mapping, instead of using x and y, just use how far into the level's vector the player is)
+	bool is_tiny = false;
 	player(int, int, int);
 	void reset() {
 		x = default_x;
 		y = default_y;
 		texture = default_texture;
 		location = default_location;
+		is_tiny = false;
 	}
 };
 
@@ -700,9 +716,28 @@ int game() {
 	}
 	else {
 		if (kDown & KEY_LEFT) {
-			if (!chapter1[0].rooms[player1.location].hasObject(WALL_L)) {
-				player1.x--;
-				player1.location -= 1;
+			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD})) {
+				if (chapter1[0].rooms[player1.location].hasObject(SMALL_LEFT)) {
+					if (player1.is_tiny) {
+						player1.x--;
+						player1.location -= 1;
+					}
+					else {
+						//play sound?
+					}
+				}
+				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_L)) {
+					//if (player1.hasObject(KEY) {
+						//unlock
+					//}
+					//else {
+						//play sound?
+					//}
+				}
+				else {
+					player1.x--;
+					player1.location -= 1;
+				}
 			}
 			else {
 				//play sound?
@@ -710,21 +745,81 @@ int game() {
 		}
 		else if (kDown & KEY_RIGHT) {
 			if (!chapter1[0].rooms[player1.location].hasObject(WALL_R)) {
-				player1.x++;
-				player1.location += 1;
+				if (chapter1[0].rooms[player1.location].hasObject(SMALL_RIGHT)) {
+					if (player1.is_tiny) {
+						player1.x++;
+						player1.location += 1;
+					}
+					else {
+						//play sound?
+					}
+				}
+				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_R)) {
+					//if (player1.hasObject(KEY) {
+						//unlock
+					//}
+					//else {
+						//play sound?
+					//}
+				}
+				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
+					player1.x++;
+					player1.location += 1;
+				}
 			}
 		}
 		else if (kDown & KEY_UP) {
 			if (!chapter1[0].rooms[player1.location].hasObject(WALL_U)) {
-				player1.y--;
-				player1.location -= chapter1[0].width;
+				if (chapter1[0].rooms[player1.location].hasObject(SMALL_UP)) {
+					if (player1.is_tiny) {
+						player1.y--;
+						player1.location -= chapter1[0].width;
+					}
+					else {
+						//play sound?
+					}
+				}
+				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_U)) {
+					//if (player1.hasObject(KEY) {
+						//unlock
+					//}
+					//else {
+						//play sound?
+					//}
+				}
+				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_LR, CRAWL_LD, CRAWL_RD})) {
+					player1.y--;
+					player1.location -= chapter1[0].width;
+				}
 			}
 		}
 		else if (kDown & KEY_DOWN) {
 			if (!chapter1[0].rooms[player1.location].hasObject(WALL_D)) {
-				player1.y++;
-				player1.location += chapter1[0].width;
+				if (chapter1[0].rooms[player1.location].hasObject(SMALL_DOWN)) {
+					if (player1.is_tiny) {
+						player1.y++;
+						player1.location += chapter1[0].width;
+					}
+					else {
+						//play sound?
+					}
+				}
+				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_D)) {
+					//if (player1.hasObject(KEY) {
+						//unlock
+					//}
+					//else {
+						//play sound?
+					//}
+				}
+				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_LR, CRAWL_LU, CRAWL_RU})) {
+					player1.y++;
+					player1.location += chapter1[0].width;
+				}
 			}
+		}
+		else if (kDown & KEY_X) {
+			player1.is_tiny = (player1.is_tiny ? false : true);
 		}
 	}
 
