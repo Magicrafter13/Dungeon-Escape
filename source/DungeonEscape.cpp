@@ -42,6 +42,11 @@ enum room_items {
 	EXIT = 47, POWERUP = 48, HIDDEN = 49
 };
 
+/// Player items
+enum player_items {
+	KEY = 0
+};
+
 size_t
 wallID,
 coinsID,
@@ -155,6 +160,7 @@ public:
 	int texture;
 	int location; //(easy for mapping, instead of using x and y, just use how far into the level's vector the player is)
 	bool is_tiny = false;
+	std::vector<int> objects;
 	player(int, int, int);
 	void reset() {
 		x = default_x;
@@ -162,6 +168,19 @@ public:
 		texture = default_texture;
 		location = default_location;
 		is_tiny = false;
+	}
+	void addObject(int object) {
+		objects.push_back(object);
+	}
+	void removeObject(int object) {
+		std::vector<int> temp_objects = objects;
+		objects.clear();
+		for (unsigned int i = 0; i < temp_objects.size(); i++)
+			if (temp_objects[i] != object)
+				objects.push_back(object);
+	}
+	bool hasObject(int object) {
+		return (std::find(objects.begin(), objects.end(), object) != objects.end());
 	}
 };
 
@@ -207,7 +226,7 @@ std::vector<level> chapter1{
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
 		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
-		room({EMPTY, WALL_U, LOCK_R}, {EMPTY, WALL_U, UNLOCK_R}),
+		room({EMPTY, WALL_U, LOCK_R, SMALL_DOWN}, {EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN}),
 		room({EXIT, WALL_U, WALL_D, WALL_R}),
 		room({WALL}), //row 4
 		room({EMPTY, WALL_L, WALL_R}),
@@ -727,12 +746,12 @@ int game() {
 					}
 				}
 				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_L)) {
-					//if (player1.hasObject(KEY) {
+					if (player1.hasObject(KEY)) {
 						//unlock
-					//}
-					//else {
+					}
+					else {
 						//play sound?
-					//}
+					}
 				}
 				else {
 					player1.x--;
@@ -744,7 +763,7 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_RIGHT) {
-			if (!chapter1[0].rooms[player1.location].hasObject(WALL_R)) {
+			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
 				if (chapter1[0].rooms[player1.location].hasObject(SMALL_RIGHT)) {
 					if (player1.is_tiny) {
 						player1.x++;
@@ -755,21 +774,21 @@ int game() {
 					}
 				}
 				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_R)) {
-					//if (player1.hasObject(KEY) {
+					if (player1.hasObject(KEY)) {
 						//unlock
-					//}
-					//else {
+					}
+					else {
 						//play sound?
-					//}
+					}
 				}
-				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
+				else {
 					player1.x++;
 					player1.location += 1;
 				}
 			}
 		}
 		else if (kDown & KEY_UP) {
-			if (!chapter1[0].rooms[player1.location].hasObject(WALL_U)) {
+			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD })) {
 				if (chapter1[0].rooms[player1.location].hasObject(SMALL_UP)) {
 					if (player1.is_tiny) {
 						player1.y--;
@@ -780,21 +799,21 @@ int game() {
 					}
 				}
 				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_U)) {
-					//if (player1.hasObject(KEY) {
+					if (player1.hasObject(KEY)) {
 						//unlock
-					//}
-					//else {
+					}
+					else {
 						//play sound?
-					//}
+					}
 				}
-				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_LR, CRAWL_LD, CRAWL_RD})) {
+				else {
 					player1.y--;
 					player1.location -= chapter1[0].width;
 				}
 			}
 		}
 		else if (kDown & KEY_DOWN) {
-			if (!chapter1[0].rooms[player1.location].hasObject(WALL_D)) {
+			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU })) {
 				if (chapter1[0].rooms[player1.location].hasObject(SMALL_DOWN)) {
 					if (player1.is_tiny) {
 						player1.y++;
@@ -805,14 +824,14 @@ int game() {
 					}
 				}
 				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_D)) {
-					//if (player1.hasObject(KEY) {
+					if (player1.hasObject(KEY)) {
 						//unlock
-					//}
-					//else {
+					}
+					else {
 						//play sound?
-					//}
+					}
 				}
-				else if (!chapter1[0].rooms[player1.location].hasObjectsOr({CRAWL_LR, CRAWL_LU, CRAWL_RU})) {
+				else {
 					player1.y++;
 					player1.location += chapter1[0].width;
 				}
