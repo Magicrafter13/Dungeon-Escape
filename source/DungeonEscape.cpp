@@ -15,6 +15,7 @@ size_t protected_textures = 0, textures = 0;
 
 std::string error_code;
 std::string error_message;
+bool error = false;
 
 int game();
 
@@ -85,10 +86,13 @@ public:
 	std::string current_object_set = "before"; //set to toggle between before and after when activated
 	int teleport_to;
 	int powerup[2];
+	bool activates_multiple;
+	std::vector<int> rooms_activated;
 	room(std::vector<int>);
 	room(std::vector<int>, int);
-	room(std::vector<int>, std::vector<int>);
+	room(std::vector<int>, std::vector<int>, bool);
 	room(std::vector<int>, int[2]);
+	room(std::vector<int>, std::vector<int>);
 	bool hasObject(int object) {
 		return (std::find(objects.begin(), objects.end(), object) != objects.end());
 	}
@@ -106,6 +110,29 @@ public:
 				has_one = true;
 		return has_one;
 	}
+	void activate() {
+		if (has_before_and_after) {
+			if (current_object_set == "before") {
+				current_object_set = "after";
+				objects = after_activation;
+			}
+			else if (current_object_set == "after") {
+				current_object_set = "before";
+				objects = before_activation;
+			}
+			else {
+				error_code = "rm_chng_obj-set";
+				error_message = "Could not determine which object\nset the room needed.";
+				error = true;
+			}
+		}
+		else {
+			if (current_object_set == "before") {
+				current_object_set = "after";
+				objects = after_activation;
+			}
+		}
+	}
 };
 
 room::room(std::vector<int> fobjects) {
@@ -122,17 +149,24 @@ room::room(std::vector<int> fobjects, int linked) {
 	}
 }
 
-room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a) {
+room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa) {
 	objects = fobjects_b;
 	before_activation = fobjects_b;
 	after_activation = fobjects_a;
-	has_before_and_after = true;
+	has_before_and_after = hbaa;
+	activates_multiple = false;
 }
 
 room::room(std::vector<int> fobjects, int powerups[2]) {
 	objects = fobjects;
 	powerup[0] = powerups[0];
 	powerup[1] = powerups[1];
+}
+
+room::room(std::vector<int> fobjects, std::vector<int> rooms_to_activate) {
+	activates_multiple = true;
+	rooms_activated = rooms_to_activate;
+	objects = fobjects;
 }
 
 class level {
@@ -226,21 +260,21 @@ std::vector<level> chapter1{
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
 		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
-		room({EMPTY, WALL_U, LOCK_R, SMALL_DOWN}, {EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN}),
+		room({EMPTY, WALL_U, LOCK_R, SMALL_DOWN}, {EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN}, false),
 		room({EXIT, WALL_U, WALL_D, WALL_R}),
 		room({WALL}), //row 4
 		room({EMPTY, WALL_L, WALL_R}),
 		room({WALL}),
-		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}),
+		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}, true),
 		room({EMPTY, WALL_U, WALL_D}),
 		room({TELEPORT, WALL_U, WALL_R, WALL_D}, 49),
 		room({EMPTY, CRAWL_UD}),
 		room({WALL}),
 		room({WALL}), //row 5
 		room({EMPTY, WALL_L, WALL_R}),
-		room({EMPTY, WALL_U, WALL_L, WALL_D}),
-		room({WALL}, {EMPTY, WALL_R, WALL_D}), //room 43 (42 + 1)
-		room({WALL_U, WALL_L, PRESSURE_PLATE}, 42),
+		room({WALL}, {EMPTY, WALL_U, WALL_L, WALL_D}, true),
+		room({WALL}, {EMPTY, WALL_R, WALL_D}, true), //room 43 (42 + 1)
+		room({WALL_U, WALL_L, PRESSURE_PLATE}, {34, 41, 42}),
 		room({EMPTY, WALL_U, WALL_D, SMALL_RIGHT}),
 		room({CRAWL_LU, PRESSURE_PLATE}, 29),
 		room({WALL}),
@@ -262,7 +296,7 @@ std::vector<level> chapter1{
 		room({WALL}),
 		room({PRESSURE_PLATE, WALL_L, WALL_R}, 65), //row 8
 		room({EMPTY, WALL_L, WALL_D}),
-		room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}),
+		room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}, true),
 		room({EMPTY}),
 		room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
 		room({WALL}),
@@ -715,6 +749,8 @@ int game() {
 		}
 	}
 
+	bool has_moved = false;
+
 	if (paused) {
 		if (kDown & KEY_UP) {
 			paused_selection--;
@@ -740,6 +776,7 @@ int game() {
 					if (player1.is_tiny) {
 						player1.x--;
 						player1.location -= 1;
+						has_moved = true;
 					}
 					else {
 						//play sound?
@@ -756,6 +793,7 @@ int game() {
 				else {
 					player1.x--;
 					player1.location -= 1;
+					has_moved = true;
 				}
 			}
 			else {
@@ -768,6 +806,7 @@ int game() {
 					if (player1.is_tiny) {
 						player1.x++;
 						player1.location += 1;
+						has_moved = true;
 					}
 					else {
 						//play sound?
@@ -784,6 +823,7 @@ int game() {
 				else {
 					player1.x++;
 					player1.location += 1;
+					has_moved = true;
 				}
 			}
 		}
@@ -793,6 +833,7 @@ int game() {
 					if (player1.is_tiny) {
 						player1.y--;
 						player1.location -= chapter1[0].width;
+						has_moved = true;
 					}
 					else {
 						//play sound?
@@ -809,6 +850,7 @@ int game() {
 				else {
 					player1.y--;
 					player1.location -= chapter1[0].width;
+					has_moved = true;
 				}
 			}
 		}
@@ -818,6 +860,7 @@ int game() {
 					if (player1.is_tiny) {
 						player1.y++;
 						player1.location += chapter1[0].width;
+						has_moved = true;
 					}
 					else {
 						//play sound?
@@ -834,11 +877,38 @@ int game() {
 				else {
 					player1.y++;
 					player1.location += chapter1[0].width;
+					has_moved = true;
 				}
 			}
 		}
 		else if (kDown & KEY_X) {
 			player1.is_tiny = (player1.is_tiny ? false : true);
+		}
+	}
+
+	if (has_moved) {
+		room temp_room = chapter1[0].rooms[player1.location];
+		if (temp_room.hasObject(PRESSURE_PLATE)) {
+			if (temp_room.activates_multiple) {
+				for (unsigned int i = 0; i < temp_room.rooms_activated.size(); i++)
+					chapter1[0].rooms[temp_room.rooms_activated[i]].activate();
+			}
+			else
+				chapter1[0].rooms[temp_room.activates_room].activate();
+		}
+		else if (temp_room.hasObject(TELEPORT)) {
+			int teleport_to = temp_room.teleport_to;
+			int temp = -1;
+			for (int y = 0; y < chapter1[0].height; y++) {
+				for (int x = 0; x < chapter1[0].width; x++) {
+					temp++;
+					if (temp == teleport_to) {
+						player1.x = x;
+						player1.y = y;
+						player1.location = teleport_to;
+					}
+				}
+			}
 		}
 	}
 
