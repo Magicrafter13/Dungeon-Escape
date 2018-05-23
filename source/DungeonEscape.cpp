@@ -133,6 +133,16 @@ public:
 			}
 		}
 	}
+	void addObject(int object) {
+		objects.push_back(object);
+	}
+	void removeObject(int object) {
+		std::vector<int> temp_objects = objects;
+		objects.clear();
+		for (unsigned int i = 0; i < temp_objects.size(); i++)
+			if (temp_objects[i] != object)
+				objects.push_back(object);
+	}
 };
 
 room::room(std::vector<int> fobjects) {
@@ -195,6 +205,10 @@ public:
 	int location; //(easy for mapping, instead of using x and y, just use how far into the level's vector the player is)
 	bool is_tiny = false;
 	std::vector<int> objects;
+	std::vector<int> inventory = {
+		0, //TINY
+		0 //CROUCH
+	};
 	player(int, int, int);
 	void reset() {
 		x = default_x;
@@ -215,6 +229,9 @@ public:
 	}
 	bool hasObject(int object) {
 		return (std::find(objects.begin(), objects.end(), object) != objects.end());
+	}
+	void addInventory(int object[2]) {
+		inventory[object[0]] += object[1];
 	}
 };
 
@@ -294,10 +311,10 @@ std::vector<level> chapter1{
 		room({WALL}),
 		room({WALL}),
 		room({WALL}),
-		room({PRESSURE_PLATE, WALL_L, WALL_R}, 65), //row 8
-		room({EMPTY, WALL_L, WALL_D}),
+		room({PRESSURE_PLATE, WALL_L, WALL_R}, {64, 65, 66}), //row 8
+		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L, WALL_D, WALL_R}, true),
 		room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}, true),
-		room({EMPTY}),
+		room({EMPTY}, {EMPTY, WALL_L}, true),
 		room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
 		room({WALL}),
 		room({WALL}),
@@ -445,7 +462,8 @@ void load_textures() {
 		"lock_u",
 		"lock_d",
 		"teleport",
-		"player"
+		"player",
+		"temp_powerup"
 	};
 	std::vector<size_t*> misc_p = {
 		&pressure_plateID,
@@ -454,7 +472,8 @@ void load_textures() {
 		&lock_uID,
 		&lock_dID,
 		&teleportID,
-		&playerID
+		&playerID,
+		&powerupID
 	};
 	for (id = i; id < i + misc.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
@@ -717,6 +736,8 @@ int game() {
 			}
 			if (chapter1[0].rooms[temp].hasObject(TELEPORT))
 				pp2d_draw_texture(teleportID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(POWERUP))
+				pp2d_draw_texture(powerupID, 16 * rel_x, 16 * rel_y);
 			temp++;
 		}
 	}
@@ -887,17 +908,17 @@ int game() {
 	}
 
 	if (has_moved) {
-		room temp_room = chapter1[0].rooms[player1.location];
-		if (temp_room.hasObject(PRESSURE_PLATE)) {
-			if (temp_room.activates_multiple) {
-				for (unsigned int i = 0; i < temp_room.rooms_activated.size(); i++)
-					chapter1[0].rooms[temp_room.rooms_activated[i]].activate();
+		room* temp_room = &chapter1[0].rooms[player1.location];
+		if (temp_room->hasObject(PRESSURE_PLATE)) {
+			if (temp_room->activates_multiple) {
+				for (unsigned int i = 0; i < temp_room->rooms_activated.size(); i++)
+					chapter1[0].rooms[temp_room->rooms_activated[i]].activate();
 			}
 			else
-				chapter1[0].rooms[temp_room.activates_room].activate();
+				chapter1[0].rooms[temp_room->activates_room].activate();
 		}
-		else if (temp_room.hasObject(TELEPORT)) {
-			int teleport_to = temp_room.teleport_to;
+		else if (temp_room->hasObject(TELEPORT)) {
+			int teleport_to = temp_room->teleport_to;
 			int temp = -1;
 			for (int y = 0; y < chapter1[0].height; y++) {
 				for (int x = 0; x < chapter1[0].width; x++) {
@@ -909,6 +930,10 @@ int game() {
 					}
 				}
 			}
+		}
+		else if (temp_room->hasObject(POWERUP)) {
+			player1.addInventory(temp_room->powerup);
+			temp_room->removeObject(POWERUP);
 		}
 	}
 
