@@ -67,7 +67,9 @@ pressure_plateID,
 teleportID, null_teleportID,
 force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
-pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID;
+pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
+error_50x50, emptyID,
+small_invID;
 std::vector<size_t> ps_arrow(4);
 
 /// Powerups
@@ -407,15 +409,33 @@ void load_textures_p() {
 	i = id;
 	std::vector<std::string> title_screen = {
 		"title",
-		"inventory"
+		"inventory",
+		"inventory_selector",
+		"error_50x50",
+		"empty"
 	};
 	std::vector<size_t*> title_screen_p = {
 		&titleID,
-		&inventoryID
+		&inventoryID,
+		&inventory_selectedID,
+		&error_50x50,
+		&emptyID
 	};
 	for (id = i; id < i + title_screen.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + title_screen[id - i] + ".png").c_str());
 		*title_screen_p[id - i] = id;
+		protected_textures++;
+	}
+	i = id;
+	std::vector<std::string> powerups = {
+		"small_inv"
+	};
+	std::vector<size_t*> powerups_p = {
+		&small_invID
+	};
+	for (id = i; id < i + powerups.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/" + powerups[id - i] + ".png").c_str());
+		*powerups_p[id - i] = id;
 		protected_textures++;
 	}
 	//load textures and add to protected_textures
@@ -515,6 +535,52 @@ int paused_selection = 0;
 std::string paused_level = "top";
 bool inventory = false;
 int inventory_selection = 0;
+
+int inventoryItem(int powerup) {
+	switch (powerup) {
+	case 0:
+		return small_invID;
+		break;
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+	case 11:
+	case 12:
+	case 13:
+	case 14:
+	case 15:
+	case 16:
+	case 17:
+	case 18:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+	case 26:
+	case 27:
+	case 28:
+	case 29:
+	case 30:
+	case 31:
+		return emptyID;
+		break;
+	default:
+		return error_50x50;
+	}
+}
+
+void tryInventory(int selection) {
+
+}
 
 int main(int argc, char **argv)
 {
@@ -776,6 +842,15 @@ int game() {
 	}
 	if (inventory) {
 		pp2d_draw_texture(inventoryID, 0, 0);
+		int selector = 0;
+		for (int y = 0; y < 4; y++) {
+			for (int x = 0; x < 8; x++) {
+				pp2d_draw_texture(inventoryItem(selector), x * 50, (y * 50) + 40);
+				if (selector == inventory_selection)
+					pp2d_draw_texture(inventory_selectedID, x * 50, (y * 50) + 40);
+				selector++;
+			}
+		}
 	}
 	pp2d_end_draw();
 
@@ -819,9 +894,24 @@ int game() {
 		}
 	}
 	else if (inventory) {
-		if (kDown & KEY_B) {
+		if (kDown & KEY_B)
 			inventory = false;
-		}
+		else if (kDown & KEY_UP)
+			inventory_selection -= 8;
+		else if (kDown & KEY_DOWN)
+			inventory_selection += 8;
+		else if (kDown & KEY_LEFT)
+			inventory_selection--;
+		else if (kDown & KEY_RIGHT)
+			inventory_selection++;
+		else if (kDown & KEY_A)
+			tryInventory(inventory_selection);
+		if (inventory_selection <= -1)
+			inventory_selection = 0;
+		if (inventory_selection >= 32)
+			inventory_selection = 31;
+		if (kDown & (KEY_UP | KEY_DOWN | KEY_RIGHT | KEY_LEFT))
+			std::cout << inventory_selection << " ";
 	}
 	else {
 		if (kDown & KEY_LEFT) {
