@@ -69,7 +69,7 @@ force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
 error_50x50, emptyID,
-small_invID;
+small_invID, none_leftID;
 std::vector<size_t> ps_arrow(4);
 
 /// Powerups
@@ -227,8 +227,38 @@ public:
 	bool is_tiny = false;
 	std::vector<int> objects;
 	std::vector<int> inventory = {
-		0, //TINY
-		0 //CROUCH
+		0, //TINY/SMALL
+		0, //CRAWL
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0
 	};
 	player(int, int, int);
 	void reset() {
@@ -428,10 +458,12 @@ void load_textures_p() {
 	}
 	i = id;
 	std::vector<std::string> powerups = {
-		"small_inv"
+		"small_inv",
+		"none_left"
 	};
 	std::vector<size_t*> powerups_p = {
-		&small_invID
+		&small_invID,
+		&none_leftID
 	};
 	for (id = i; id < i + powerups.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + powerups[id - i] + ".png").c_str());
@@ -579,7 +611,14 @@ int inventoryItem(int powerup) {
 }
 
 void tryInventory(int selection) {
-
+	switch (selection) {
+	case 0:
+		if (player1.inventory[0] > 0 && !player1.is_tiny) {
+			player1.inventory[0]--;
+			player1.is_tiny = true;
+		}
+		break;
+	}
 }
 
 int main(int argc, char **argv)
@@ -848,6 +887,9 @@ int game() {
 				pp2d_draw_texture(inventoryItem(selector), x * 50, (y * 50) + 40);
 				if (selector == inventory_selection)
 					pp2d_draw_texture(inventory_selectedID, x * 50, (y * 50) + 40);
+				if (player1.inventory[selector] == 0)
+					if (selector < 2)
+						pp2d_draw_texture(none_leftID, x * 50, (y * 50) + 40);
 				selector++;
 			}
 		}
