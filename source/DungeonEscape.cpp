@@ -69,8 +69,8 @@ force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
 error_50x50, emptyID,
-small_invID, none_leftID;
-std::vector<size_t> ps_arrow(4);
+small_invID, none_leftID, counterID;
+std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 /// Powerups
 enum powerup_enum {
@@ -461,11 +461,73 @@ void load_textures_p() {
 	i = id;
 	std::vector<std::string> powerups = {
 		"small_inv",
-		"none_left"
+		"none_left",
+		"0xx",
+		"1xx",
+		"2xx",
+		"3xx",
+		"4xx",
+		"5xx",
+		"6xx",
+		"7xx",
+		"8xx",
+		"9xx",
+		"x0x",
+		"x1x",
+		"x2x",
+		"x3x",
+		"x4x",
+		"x5x",
+		"x6x",
+		"x7x",
+		"x8x",
+		"x9x",
+		"xx0",
+		"xx1",
+		"xx2",
+		"xx3",
+		"xx4",
+		"xx5",
+		"xx6",
+		"xx7",
+		"xx8",
+		"xx9",
+		"counter"
 	};
 	std::vector<size_t*> powerups_p = {
 		&small_invID,
-		&none_leftID
+		&none_leftID,
+		&nxx[0],
+		&nxx[1],
+		&nxx[2],
+		&nxx[3],
+		&nxx[4],
+		&nxx[5],
+		&nxx[6],
+		&nxx[7],
+		&nxx[8],
+		&nxx[9],
+		&xnx[0],
+		&xnx[1],
+		&xnx[2],
+		&xnx[3],
+		&xnx[4],
+		&xnx[5],
+		&xnx[6],
+		&xnx[7],
+		&xnx[8],
+		&xnx[9],
+		&xxn[0],
+		&xxn[1],
+		&xxn[2],
+		&xxn[3],
+		&xxn[4],
+		&xxn[5],
+		&xxn[6],
+		&xxn[7],
+		&xxn[8],
+		&xxn[9],
+		&counterID
 	};
 	for (id = i; id < i + powerups.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + powerups[id - i] + ".png").c_str());
@@ -895,6 +957,25 @@ int game() {
 				selector++;
 			}
 		}
+		pp2d_draw_texture(inventoryItem(inventory_selection), 6 * 50, (3 * 50) + 40);
+		pp2d_draw_texture(counterID, 7 * 50, (3 * 50) + 40);
+		//
+
+		std::string temp_numbers = "";
+		if (player1.inventory[inventory_selection] < 100)
+			temp_numbers += "0";
+		if (player1.inventory[inventory_selection] < 10)
+			temp_numbers += "0";
+		temp_numbers += std::to_string(player1.inventory[inventory_selection]);
+		int first = temp_numbers.at(0) - '0';
+		int second = temp_numbers.at(1) - '0';
+		int third = temp_numbers.at(2) - '0';
+		pp2d_draw_texture(nxx[first], 7 * 50, (3 * 50) + 40);
+		pp2d_draw_texture(xnx[second], 7 * 50, (3 * 50) + 40);
+		pp2d_draw_texture(xxn[third], 7 * 50, (3 * 50) + 40);
+
+
+		//
 	}
 	pp2d_end_draw();
 
