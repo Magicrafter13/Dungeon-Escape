@@ -67,7 +67,7 @@ pressure_plateID,
 teleportID, null_teleportID,
 force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
-pause_scr, ps_0, ps_1, ps_2, ps_3, titleID;
+pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID;
 std::vector<size_t> ps_arrow(4);
 
 /// Powerups
@@ -406,10 +406,12 @@ void load_textures_p() {
 	}
 	i = id;
 	std::vector<std::string> title_screen = {
-		"title"
+		"title",
+		"inventory"
 	};
 	std::vector<size_t*> title_screen_p = {
-		&titleID
+		&titleID,
+		&inventoryID
 	};
 	for (id = i; id < i + title_screen.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + title_screen[id - i] + ".png").c_str());
@@ -511,6 +513,8 @@ void unload_textures() {
 bool paused = false;
 int paused_selection = 0;
 std::string paused_level = "top";
+bool inventory = false;
+int inventory_selection = 0;
 
 int main(int argc, char **argv)
 {
@@ -770,6 +774,9 @@ int game() {
 		pp2d_draw_texture(ps_3, 99, 0);
 		pp2d_draw_texture(ps_arrow[paused_selection], 99, 0);
 	}
+	if (inventory) {
+		pp2d_draw_texture(inventoryID, 0, 0);
+	}
 	pp2d_end_draw();
 
 	hidTouchRead(&touch);
@@ -809,6 +816,11 @@ int game() {
 		}
 		else if (kDown & KEY_B) {
 			paused_return_level();
+		}
+	}
+	else if (inventory) {
+		if (kDown & KEY_B) {
+			inventory = false;
 		}
 	}
 	else {
@@ -925,6 +937,9 @@ int game() {
 		}
 		else if (kDown & KEY_X) {
 			player1.is_tiny = (player1.is_tiny ? false : true);
+		}
+		else if (kDown & KEY_Y) {
+			inventory = true;
 		}
 	}
 
