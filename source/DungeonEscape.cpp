@@ -77,6 +77,9 @@ enum powerup_enum {
 };
 
 class room {
+	std::vector<int> dobjects;
+	std::vector<int> dbefore_activation, dafter_activation;
+	int dpowerup[2];
 public:
 	std::vector<int> objects;
 	int activates_room;
@@ -93,6 +96,13 @@ public:
 	room(std::vector<int>, std::vector<int>, bool);
 	room(std::vector<int>, int[2]);
 	room(std::vector<int>, std::vector<int>);
+	void reset() {
+		objects = dobjects;
+		before_activation = dbefore_activation;
+		after_activation = dafter_activation;
+		current_object_set = "before";
+		powerup[0] = dpowerup[0]; powerup[1] = dpowerup[1];
+	}
 	bool hasObject(int object) {
 		return (std::find(objects.begin(), objects.end(), object) != objects.end());
 	}
@@ -141,16 +151,18 @@ public:
 		objects.clear();
 		for (unsigned int i = 0; i < temp_objects.size(); i++)
 			if (temp_objects[i] != object)
-				objects.push_back(object);
+				objects.push_back(temp_objects[i]);
 	}
 };
 
 room::room(std::vector<int> fobjects) {
 	objects = fobjects;
+	dobjects = fobjects;
 }
 
 room::room(std::vector<int> fobjects, int linked) {
 	objects = fobjects;
+	dobjects = fobjects;
 	if (std::find(objects.begin(), objects.end(), TELEPORT) != objects.end()) {
 		teleport_to = linked;
 	}
@@ -161,22 +173,29 @@ room::room(std::vector<int> fobjects, int linked) {
 
 room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa) {
 	objects = fobjects_b;
+	dobjects = fobjects_b;
 	before_activation = fobjects_b;
+	dbefore_activation = fobjects_b;
 	after_activation = fobjects_a;
+	dafter_activation = fobjects_a;
 	has_before_and_after = hbaa;
 	activates_multiple = false;
 }
 
 room::room(std::vector<int> fobjects, int powerups[2]) {
 	objects = fobjects;
+	dobjects = fobjects;
 	powerup[0] = powerups[0];
+	dpowerup[0] = powerups[0];
 	powerup[1] = powerups[1];
+	dpowerup[1] = powerups[1];
 }
 
 room::room(std::vector<int> fobjects, std::vector<int> rooms_to_activate) {
 	activates_multiple = true;
 	rooms_activated = rooms_to_activate;
 	objects = fobjects;
+	dobjects = fobjects;
 }
 
 class level {
@@ -541,6 +560,8 @@ int main(int argc, char **argv)
 					}
 				}
 			}
+			for (unsigned int i = 0; i < chapter1[0].rooms.size(); i++)
+				chapter1[0].rooms[i].reset();
 			int ret_val = 0;
 			while (ret_val == 0)
 				ret_val = game();
@@ -934,6 +955,9 @@ int game() {
 		else if (temp_room->hasObject(POWERUP)) {
 			player1.addInventory(temp_room->powerup);
 			temp_room->removeObject(POWERUP);
+			for (unsigned int i = 0; i < player1.inventory.size(); i++)
+				std::cout << player1.inventory[i] << ", ";
+			std::cout << std::endl;
 		}
 	}
 
