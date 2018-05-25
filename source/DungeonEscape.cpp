@@ -69,7 +69,7 @@ force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
 error_50x50, emptyID,
-small_invID, none_leftID, counterID;
+small_invID, none_leftID, counterID, player_smallID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 /// Powerups
@@ -258,6 +258,7 @@ public:
 		0,
 		0
 	};
+	bool entered_small = false;
 	player(int, int, int);
 	void reset() {
 		x = default_x;
@@ -265,8 +266,9 @@ public:
 		texture = default_texture;
 		location = default_location;
 		is_tiny = false;
-		//for (unsigned int i = 0; i < inventory.size(); i++)
-			//inventory[i] = 0;
+		for (unsigned int i = 0; i < inventory.size(); i++)
+			inventory[i] = 0;
+		entered_small = false;
 	}
 	void addObject(int object) {
 		objects.push_back(object);
@@ -598,7 +600,8 @@ void load_textures() {
 		"lock_d",
 		"teleport",
 		"player",
-		"temp_powerup"
+		"temp_powerup",
+		"player_tiny"
 	};
 	std::vector<size_t*> misc_p = {
 		&pressure_plateID,
@@ -608,7 +611,8 @@ void load_textures() {
 		&lock_dID,
 		&teleportID,
 		&playerID,
-		&powerupID
+		&powerupID,
+		&player_smallID
 	};
 	for (id = i; id < i + misc.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
@@ -868,7 +872,10 @@ void paused_return_level() {
 int game() {
 	int ret_val = 0;
 	pp2d_begin_draw(GFX_TOP, GFX_LEFT);
-	pp2d_draw_texture(playerID, 12 * 16, 7 * 16); //(13, 8)
+	if (player1.is_tiny)
+		pp2d_draw_texture(player_smallID, 12 * 16, 7 * 16); //(13, 8)
+	else
+		pp2d_draw_texture(playerID, 12 * 16, 7 * 16);
 	int temp = 0;
 	for (int y = 0; y < chapter1[0].height; y++) {
 		for (int x = 0; x < chapter1[0].width; x++) {
@@ -1186,6 +1193,14 @@ int game() {
 			for (unsigned int i = 0; i < player1.inventory.size(); i++)
 				std::cout << player1.inventory[i] << ", ";
 			std::cout << std::endl;
+		}
+		if (temp_room->hasObjectsOr({CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD}))
+			player1.entered_small = true;
+		else {
+			if (player1.entered_small) {
+				player1.entered_small = false;
+				player1.is_tiny = false;
+			}
 		}
 	}
 
