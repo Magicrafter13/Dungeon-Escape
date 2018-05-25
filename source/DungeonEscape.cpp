@@ -259,6 +259,7 @@ public:
 		0
 	};
 	bool entered_small = false;
+	int lives = 3;
 	player(int, int, int);
 	void reset() {
 		x = default_x;
@@ -269,6 +270,7 @@ public:
 		for (unsigned int i = 0; i < inventory.size(); i++)
 			inventory[i] = 0;
 		entered_small = false;
+		lives = 3;
 	}
 	void addObject(int object) {
 		objects.push_back(object);
@@ -601,7 +603,8 @@ void load_textures() {
 		"teleport",
 		"player",
 		"temp_powerup",
-		"player_tiny"
+		"player_tiny",
+		"kill"
 	};
 	std::vector<size_t*> misc_p = {
 		&pressure_plateID,
@@ -612,7 +615,8 @@ void load_textures() {
 		&teleportID,
 		&playerID,
 		&powerupID,
-		&player_smallID
+		&player_smallID,
+		&killID
 	};
 	for (id = i; id < i + misc.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
@@ -937,6 +941,8 @@ int game() {
 				pp2d_draw_texture(teleportID, 16 * rel_x, 16 * rel_y);
 			if (chapter1[0].rooms[temp].hasObject(POWERUP))
 				pp2d_draw_texture(powerupID, 16 * rel_x, 16 * rel_y);
+			if (chapter1[0].rooms[temp].hasObject(KILL))
+				pp2d_draw_texture(killID, 16 * rel_x, 16 * rel_y);
 			temp++;
 		}
 	}
@@ -1202,7 +1208,17 @@ int game() {
 				player1.is_tiny = false;
 			}
 		}
+		if (temp_room->hasObject(KILL)) {
+			int temp_lives = player1.lives - 1;
+			std::vector<int> temp_inventory = player1.inventory;
+			player1.reset();
+			player1.lives = temp_lives;
+			player1.inventory = temp_inventory;
+		}
 	}
+
+	if (player1.lives <= 0)
+		return 1;
 
 	return ret_val;
 }
