@@ -256,8 +256,6 @@ public:
 		0,
 		0,
 		0,
-		0,
-		0,
 		0
 	};
 	player(int, int, int);
@@ -267,8 +265,8 @@ public:
 		texture = default_texture;
 		location = default_location;
 		is_tiny = false;
-		for (unsigned int i = 0; i < inventory.size(); i++)
-			inventory[i] = 0;
+		//for (unsigned int i = 0; i < inventory.size(); i++)
+			//inventory[i] = 0;
 	}
 	void addObject(int object) {
 		objects.push_back(object);
