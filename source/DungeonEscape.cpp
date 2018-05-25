@@ -68,7 +68,7 @@ teleportID, null_teleportID,
 force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
-error_50x50, emptyID,
+error_50x50, emptyID, floorID,
 small_invID, none_leftID, counterID, player_smallID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
@@ -214,6 +214,18 @@ level::level(int fwidth, int fheight, std::vector<room> fdata) {
 	rooms = fdata;
 }
 
+class level_set {
+public:
+	int level_count;
+	std::vector<level> levels;
+	level_set(int, std::vector<level>);
+};
+
+level_set::level_set(int lvl_count, std::vector<level> lvls) {
+	level_count = lvl_count;
+	levels = lvls;
+}
+
 class player {
 	int default_x;
 	int default_y;
@@ -261,6 +273,7 @@ public:
 	bool entered_small = false;
 	int lives = 3;
 	player(int, int, int);
+	std::vector<bool> hidden_map;
 	void reset() {
 		x = default_x;
 		y = default_y;
@@ -301,88 +314,90 @@ player::player(int fx, int fy, int ftexture) {
 std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
 std::string buildnumber = "18.05.01.1142";
 
-std::vector<level> chapter1{
-	level(8, 10, {
-		room({WALL}),
-		room({WALL}),
-		room({START, WALL_L, WALL_U, WALL_R}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}), //row 1
-		room({WALL}),
-		room({WALL}),
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}), //row 2
-		room({EMPTY, WALL_L, WALL_U}),
-		room({EMPTY, WALL_U, WALL_D}),
-		room({EMPTY, SMALL_RIGHT}),
-		room({EMPTY, CRAWL_LR}),
-		room({EMPTY, CRAWL_LD}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}), //row 3
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}),
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}),
-		room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
-		room({EMPTY, WALL_U, LOCK_R, SMALL_DOWN}, {EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN}, false),
-		room({EXIT, WALL_U, WALL_D, WALL_R}),
-		room({WALL}), //row 4
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}),
-		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}, true),
-		room({EMPTY, WALL_U, WALL_D}),
-		room({TELEPORT, WALL_U, WALL_R, WALL_D}, 49),
-		room({EMPTY, CRAWL_UD}),
-		room({WALL}),
-		room({WALL}), //row 5
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}, {EMPTY, WALL_U, WALL_L, WALL_D}, true),
-		room({WALL}, {EMPTY, WALL_R, WALL_D}, true), //room 43 (42 + 1)
-		room({WALL_U, WALL_L, PRESSURE_PLATE}, {34, 41, 42}),
-		room({EMPTY, WALL_U, WALL_D, SMALL_RIGHT}),
-		room({CRAWL_LU, PRESSURE_PLATE}, 29),
-		room({WALL}),
-		room({WALL}), //row 6
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL_U, WALL_L, WALL_D, TELEPORT}, 36),
-		room({EMPTY, WALL_U, WALL_D}),
-		room({EMPTY, WALL_R, WALL_D}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL_U, WALL_L, WALL_R, FORCE_D}), //row 7
-		room({EMPTY, WALL_L, WALL_R}),
-		room({WALL}),
-		room({TELEPORT, WALL_L, WALL_U, WALL_R}, 55),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({PRESSURE_PLATE, WALL_L, WALL_R}, {64, 65, 66}), //row 8
-		room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L, WALL_D, WALL_R}, true),
-		room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}, true),
-		room({EMPTY}, {EMPTY, WALL_L}, true),
-		room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({TELEPORT, WALL_L, WALL_D, WALL_R}, 10), //row 9
-		room({WALL}),
-		room({WALL}),
-		room({WALL_L, WALL_D, WALL_R, POWERUP}, new int[2]{TINY, 3}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}),
-		room({WALL}) //row 10
+std::vector<level_set> game_data {
+	level_set(8, std::vector<level>{
+		level(8, 10, {
+			room({WALL}),
+			room({WALL}),
+			room({START, WALL_L, WALL_U, WALL_R}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}), //row 1
+			room({WALL}),
+			room({WALL}),
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}), //row 2
+			room({EMPTY, WALL_L, WALL_U}),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({EMPTY, SMALL_RIGHT}),
+			room({EMPTY, CRAWL_LR}),
+			room({EMPTY, CRAWL_LD}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}), //row 3
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({EMPTY, WALL_L, SMALL_UP, WALL_D}),
+			room({EMPTY, WALL_U, LOCK_R, SMALL_DOWN}, {EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN}, false),
+			room({EXIT, WALL_U, WALL_D, WALL_R}),
+			room({WALL}), //row 4
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}, true),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({TELEPORT, WALL_U, WALL_R, WALL_D}, 49),
+			room({EMPTY, CRAWL_UD}),
+			room({WALL}),
+			room({WALL}), //row 5
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}, {EMPTY, WALL_U, WALL_L, WALL_D}, true),
+			room({WALL}, {EMPTY, WALL_R, WALL_D}, true), //room 43 (42 + 1)
+			room({WALL_U, WALL_L, PRESSURE_PLATE}, {34, 41, 42}),
+			room({EMPTY, WALL_U, WALL_D, SMALL_RIGHT}),
+			room({CRAWL_LU, PRESSURE_PLATE}, 29),
+			room({WALL}),
+			room({WALL}), //row 6
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL_U, WALL_L, WALL_D, TELEPORT}, 36),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({EMPTY, WALL_R, WALL_D}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL_U, WALL_L, WALL_R, FORCE_D}), //row 7
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({TELEPORT, WALL_L, WALL_U, WALL_R}, 55),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({PRESSURE_PLATE, WALL_L, WALL_R}, {64, 65, 66}), //row 8
+			room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L, WALL_D, WALL_R}, true),
+			room({EMPTY, WALL_U, WALL_D}, {EMPTY, WALL}, true),
+			room({EMPTY}, {EMPTY, WALL_L}, true),
+			room({HIDDEN, KILL, WALL_U, WALL_R, WALL_D}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({TELEPORT, WALL_L, WALL_D, WALL_R}, 10), //row 9
+			room({WALL}),
+			room({WALL}),
+			room({WALL_L, WALL_D, WALL_R, POWERUP}, new int[2]{TINY, 3}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}) //row 10
+		})
 	})
 };
 
@@ -446,14 +461,18 @@ void load_textures_p() {
 		"inventory",
 		"inventory_selector",
 		"error_50x50",
-		"empty"
+		"empty",
+		"floor",
+		"black_80x80"
 	};
 	std::vector<size_t*> title_screen_p = {
 		&titleID,
 		&inventoryID,
 		&inventory_selectedID,
 		&error_50x50,
-		&emptyID
+		&emptyID,
+		&floorID,
+		&hiddenID
 	};
 	for (id = i; id < i + title_screen.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + title_screen[id - i] + ".png").c_str());
@@ -626,6 +645,8 @@ void load_textures() {
 }
 
 player player1(-1, -1, 0);
+int lvl = 0;
+int chapter = 0;
 
 void unload_textures() {
 	for (size_t i = protected_textures; i < protected_textures + textures; i++)
@@ -695,7 +716,7 @@ int main(int argc, char **argv)
 {
 	//debug_file = fopen("sdmc:/3ds/de_debug.txt", "w");
 	pp2d_init();
-	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 149, 149, 149));
+	pp2d_set_screen_color(GFX_TOP, ABGR8(255, 0, 0, 0));
 	romfsInit();
 	csndInit();
 	load_textures_p();
@@ -721,11 +742,14 @@ int main(int argc, char **argv)
 		kHeld = hidKeysHeld();
 		kUp = hidKeysUp();
 		if (kDown & KEY_START) {
+			chapter = 0;
+			lvl = 0;
 			player1.reset();
 			player1.texture = playerID;
 			int temp = 0, tempX = 0, tempY = 0;
+			level *temp_level = &game_data[chapter].levels[lvl];
 			while (player1.x == -1) {
-				if (chapter1[0].rooms[temp].hasObject(START)) {
+				if (temp_level->rooms[temp].hasObject(START)) {
 					player1.x = tempX;
 					player1.y = tempY;
 					player1.location = temp;
@@ -733,14 +757,20 @@ int main(int argc, char **argv)
 				else {
 					temp++;
 					tempX++;
-					if (tempX >= chapter1[0].width) {
+					if (tempX >= temp_level->width) {
 						tempX = 0;
 						tempY++;
 					}
 				}
 			}
-			for (unsigned int i = 0; i < chapter1[0].rooms.size(); i++)
-				chapter1[0].rooms[i].reset();
+			for (unsigned int i = 0; i < temp_level->rooms.size(); i++)
+				temp_level->rooms[i].reset();
+			player1.hidden_map.resize(temp_level->rooms.size());
+			player1.hidden_map.clear();
+			for (unsigned int i = 0; i < temp_level->rooms.size(); i++) {
+				player1.hidden_map[i] = true;
+			}
+			player1.hidden_map[player1.location] = false;
 			int ret_val = 0;
 			while (ret_val == 0)
 				ret_val = game();
@@ -814,20 +844,12 @@ int main(int argc, char **argv)
 			std::cout << "Press X to see what I'm working on or have planned." << std::endl;
 			std::cout << "Press Y to open level editor." << std::endl << std::endl;
 
-			for (u32 i = 0; i < chapter1[0].rooms.size() - 60; i++) {
-				std::cout << "room" << i << ": ";
-				for (u32 j = 0; j < chapter1[0].rooms[i].objects.size(); j++)
-					std::cout << chapter1[0].rooms[i].objects[j] << ", ";
-				std::cout << "\n";
-			}
-
-			std::cout << wall_lID << " " << wall_rID << " " << wall_uID << " " << wall_dID << " " << wallID << "\n";
-
 			bottom_screen_text = 1;
 		}
 
 		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 		pp2d_draw_texture(titleID, 0, 0);
+		pp2d_draw_texture(wall_connector_lID, 0, 0);
 		pp2d_end_draw();
 
 		hidTouchRead(&touch);
@@ -876,76 +898,93 @@ void paused_return_level() {
 int game() {
 	int ret_val = 0;
 	pp2d_begin_draw(GFX_TOP, GFX_LEFT);
-	if (player1.is_tiny)
-		pp2d_draw_texture(player_smallID, 12 * 16, 7 * 16); //(13, 8)
-	else
-		pp2d_draw_texture(playerID, 12 * 16, 7 * 16);
-	int temp = 0;
-	for (int y = 0; y < chapter1[0].height; y++) {
-		for (int x = 0; x < chapter1[0].width; x++) {
-			int rel_x = 12 - (player1.x - x);
-			int rel_y = 7 - (player1.y - y);
-			if (chapter1[0].rooms[temp].hasObject(WALL_L)) {
-				pp2d_draw_texture(wall_lID, rel_x * 16, rel_y * 16);
-				if (chapter1[0].rooms[temp - chapter1[0].width].hasObject(WALL_L))
-					pp2d_draw_texture(wall_connector_lID, rel_x * 16, (rel_y * 16) - 2);
+	int tRoom = 0;
+	level *curLevel = &game_data[chapter].levels[lvl];
+	for (int y = 0; y < curLevel->height; y++) {
+		for (int x = 0; x < curLevel->width; x++) {
+			int rel_x = 2 - (player1.x - x);
+			int rel_y = 1 - (player1.y - y);
+			if (rel_x >= 0 && rel_y >= 0 && rel_x <= curLevel->width && rel_y <= curLevel->height && !curLevel->rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
+				pp2d_draw_texture(floorID, 80 * rel_x, 80 * rel_y);
+			if (!player1.hidden_map[tRoom]) {
+				if (curLevel->rooms[tRoom].hasObject(WALL_L))
+					pp2d_draw_texture(wall_lID, rel_x * 80, rel_y * 80);
+				if (curLevel->rooms[tRoom].hasObject(WALL_R))
+					pp2d_draw_texture(wall_rID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WALL_U))
+					pp2d_draw_texture(wall_uID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WALL_D))
+					pp2d_draw_texture(wall_dID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WALL))
+					pp2d_draw_texture(wallID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_LR))
+					pp2d_draw_texture(crawl_lrID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_UD))
+					pp2d_draw_texture(crawl_udID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_LU))
+					pp2d_draw_texture(crawl_luID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_LD))
+					pp2d_draw_texture(crawl_ldID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_RU))
+					pp2d_draw_texture(crawl_ruID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(CRAWL_RD))
+					pp2d_draw_texture(crawl_rdID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(PRESSURE_PLATE))
+					pp2d_draw_texture(pressure_plateID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(LOCK_L)) {
+					pp2d_draw_texture(lock_lID, 80 * rel_x, 80 * rel_y);
+					pp2d_draw_texture(lock_rID, 80 * (rel_x - 1), 80 * rel_y);
+				}
+				if (curLevel->rooms[tRoom].hasObject(LOCK_R)) {
+					pp2d_draw_texture(lock_rID, 80 * rel_x, 80 * rel_y);
+					pp2d_draw_texture(lock_lID, 16 * (rel_x + 1), 80 * rel_y);
+				}
+				if (curLevel->rooms[tRoom].hasObject(LOCK_U)) {
+					pp2d_draw_texture(lock_uID, 80 * rel_x, 80 * rel_y);
+					pp2d_draw_texture(lock_dID, 80 * rel_x, 16 * (rel_y - 1));
+				}
+				if (curLevel->rooms[tRoom].hasObject(LOCK_D)) {
+					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
+					pp2d_draw_texture(lock_uID, 80 * rel_x, 16 * (rel_y + 1));
+				}
+				if (curLevel->rooms[tRoom].hasObject(TELEPORT))
+					pp2d_draw_texture(teleportID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(POWERUP))
+					pp2d_draw_texture(powerupID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(KILL))
+					pp2d_draw_texture(killID, 80 * rel_x, 80 * rel_y);
 			}
-			if (chapter1[0].rooms[temp].hasObject(WALL_R)) {
-				pp2d_draw_texture(wall_rID, 16 * rel_x, 16 * rel_y);
-				if (chapter1[0].rooms[temp - chapter1[0].width].hasObject(WALL_R))
-					pp2d_draw_texture(wall_connector_rID, (rel_x * 16) + 13, (rel_y * 16) - 2);
-			}
-			if (chapter1[0].rooms[temp].hasObject(WALL_U)) {
-				pp2d_draw_texture(wall_uID, 16 * rel_x, 16 * rel_y);
-				if (chapter1[0].rooms[temp - 1].hasObject(WALL_U))
-					pp2d_draw_texture(wall_connector_uID, (rel_x * 16) - 2, rel_y * 16);
-			}
-			if (chapter1[0].rooms[temp].hasObject(WALL_D)) {
-				pp2d_draw_texture(wall_dID, 16 * rel_x, 16 * rel_y);
-				if (chapter1[0].rooms[temp - 1].hasObject(WALL_D))
-					pp2d_draw_texture(wall_connector_dID, (rel_x * 16) - 2, (rel_y * 16) + 13);
-			}
-			if (chapter1[0].rooms[temp].hasObject(WALL))
-				pp2d_draw_texture(wallID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_LR))
-				pp2d_draw_texture(crawl_lrID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_UD))
-				pp2d_draw_texture(crawl_udID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_LU))
-				pp2d_draw_texture(crawl_luID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_LD))
-				pp2d_draw_texture(crawl_ldID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_RU))
-				pp2d_draw_texture(crawl_ruID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(CRAWL_RD))
-				pp2d_draw_texture(crawl_rdID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(PRESSURE_PLATE))
-				pp2d_draw_texture(pressure_plateID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(LOCK_L)) {
-				pp2d_draw_texture(lock_lID, 16 * rel_x, 16 * rel_y);
-				pp2d_draw_texture(lock_rID, 16 * (rel_x - 1), 16 * rel_y);
-			}
-			if (chapter1[0].rooms[temp].hasObject(LOCK_R)) {
-				pp2d_draw_texture(lock_rID, 16 * rel_x, 16 * rel_y);
-				pp2d_draw_texture(lock_lID, 16 * (rel_x + 1), 16 * rel_y);
-			}
-			if (chapter1[0].rooms[temp].hasObject(LOCK_U)) {
-				pp2d_draw_texture(lock_uID, 16 * rel_x, 16 * rel_y);
-				pp2d_draw_texture(lock_dID, 16 * rel_x, 16 * (rel_y - 1));
-			}
-			if (chapter1[0].rooms[temp].hasObject(LOCK_D)) {
-				pp2d_draw_texture(lock_dID, 16 * rel_x, 16 * rel_y);
-				pp2d_draw_texture(lock_uID, 16 * rel_x, 16 * (rel_y + 1));
-			}
-			if (chapter1[0].rooms[temp].hasObject(TELEPORT))
-				pp2d_draw_texture(teleportID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(POWERUP))
-				pp2d_draw_texture(powerupID, 16 * rel_x, 16 * rel_y);
-			if (chapter1[0].rooms[temp].hasObject(KILL))
-				pp2d_draw_texture(killID, 16 * rel_x, 16 * rel_y);
-			temp++;
+			if (curLevel->rooms[tRoom].hasObject(WALL_L) && tRoom - curLevel->width >= 0)
+				if (curLevel->rooms[tRoom - curLevel->width].hasObject(WALL_L))
+					pp2d_draw_texture(wall_connector_lID, (rel_x * 80), ((rel_y * 80) - 10));
+			if (curLevel->rooms[tRoom].hasObject(WALL_R) && tRoom - curLevel->width >= 0)
+				if (curLevel->rooms[tRoom - curLevel->width].hasObject(WALL_R))
+					pp2d_draw_texture(wall_connector_rID, ((rel_x * 80) + 65), ((rel_y * 80) - 10));
+			if (curLevel->rooms[tRoom].hasObject(WALL_U) && tRoom - 1 >= 0)
+				if (curLevel->rooms[tRoom - 1].hasObject(WALL_U))
+					pp2d_draw_texture(wall_connector_uID, ((rel_x * 80) - 10), (rel_y * 80));
+			if (curLevel->rooms[tRoom].hasObject(WALL_D) && tRoom - 1 >= 0)
+				if (curLevel->rooms[tRoom - 1].hasObject(WALL_D))
+					pp2d_draw_texture(wall_connector_dID, ((rel_x * 80) - 10), ((rel_y * 80) + 65));
+			if (curLevel->rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
+				pp2d_draw_texture(wallID, 80 * rel_x, 80 * rel_y);
+			tRoom++;
 		}
 	}
+	tRoom = 0;
+	for (int y = 0; y < curLevel->height; y++) {
+		for (int x = 0; x < curLevel->width; x++) {
+			int rel_x = 2 - (player1.x - x);
+			int rel_y = 1 - (player1.y - y);
+			if (player1.hidden_map[tRoom])
+				pp2d_draw_texture(hiddenID, 80 * rel_x, 80 * rel_y);
+			tRoom++;
+		}
+	}
+	if (player1.is_tiny)
+		pp2d_draw_texture(player_smallID, 2 * 80, 1 * 80); //(3, 2)
+	else
+		pp2d_draw_texture(playerID, 2 * 80, 1 * 80);
 	if (paused) {
 		pp2d_draw_texture(pause_scr, 0, 0);
 		pp2d_draw_texture(ps_0, 99, 0);
@@ -970,8 +1009,6 @@ int game() {
 		}
 		pp2d_draw_texture(inventoryItem(inventory_selection), 6 * 50, (3 * 50) + 40);
 		pp2d_draw_texture(counterID, 7 * 50, (3 * 50) + 40);
-		//
-
 		std::string temp_numbers = "";
 		if (player1.inventory[inventory_selection] < 100)
 			temp_numbers += "0";
@@ -984,9 +1021,6 @@ int game() {
 		pp2d_draw_texture(nxx[first], 7 * 50, (3 * 50) + 40);
 		pp2d_draw_texture(xnx[second], 7 * 50, (3 * 50) + 40);
 		pp2d_draw_texture(xxn[third], 7 * 50, (3 * 50) + 40);
-
-
-		//
 	}
 	pp2d_end_draw();
 
@@ -1050,9 +1084,10 @@ int game() {
 			std::cout << inventory_selection << " ";
 	}
 	else {
+		room curRoom = curLevel->rooms[player1.location];
 		if (kDown & KEY_LEFT) {
-			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD})) {
-				if (chapter1[0].rooms[player1.location].hasObject(SMALL_LEFT)) {
+			if (!curRoom.hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD})) {
+				if (curRoom.hasObject(SMALL_LEFT)) {
 					if (player1.is_tiny) {
 						player1.x--;
 						player1.location -= 1;
@@ -1062,7 +1097,7 @@ int game() {
 						//play sound?
 					}
 				}
-				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_L)) {
+				else if (curRoom.hasObject(LOCK_L)) {
 					if (player1.hasObject(KEY)) {
 						//unlock
 					}
@@ -1081,8 +1116,8 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_RIGHT) {
-			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
-				if (chapter1[0].rooms[player1.location].hasObject(SMALL_RIGHT)) {
+			if (!curRoom.hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
+				if (curRoom.hasObject(SMALL_RIGHT)) {
 					if (player1.is_tiny) {
 						player1.x++;
 						player1.location += 1;
@@ -1092,7 +1127,7 @@ int game() {
 						//play sound?
 					}
 				}
-				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_R)) {
+				else if (curRoom.hasObject(LOCK_R)) {
 					if (player1.hasObject(KEY)) {
 						//unlock
 					}
@@ -1108,18 +1143,18 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_UP) {
-			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD })) {
-				if (chapter1[0].rooms[player1.location].hasObject(SMALL_UP)) {
+			if (!curRoom.hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD })) {
+				if (curRoom.hasObject(SMALL_UP)) {
 					if (player1.is_tiny) {
 						player1.y--;
-						player1.location -= chapter1[0].width;
+						player1.location -= curLevel->width;
 						has_moved = true;
 					}
 					else {
 						//play sound?
 					}
 				}
-				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_U)) {
+				else if (curRoom.hasObject(LOCK_U)) {
 					if (player1.hasObject(KEY)) {
 						//unlock
 					}
@@ -1129,24 +1164,24 @@ int game() {
 				}
 				else {
 					player1.y--;
-					player1.location -= chapter1[0].width;
+					player1.location -= curLevel->width;
 					has_moved = true;
 				}
 			}
 		}
 		else if (kDown & KEY_DOWN) {
-			if (!chapter1[0].rooms[player1.location].hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU })) {
-				if (chapter1[0].rooms[player1.location].hasObject(SMALL_DOWN)) {
+			if (!curRoom.hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU })) {
+				if (curRoom.hasObject(SMALL_DOWN)) {
 					if (player1.is_tiny) {
 						player1.y++;
-						player1.location += chapter1[0].width;
+						player1.location += curLevel->width;
 						has_moved = true;
 					}
 					else {
 						//play sound?
 					}
 				}
-				else if (chapter1[0].rooms[player1.location].hasObject(LOCK_D)) {
+				else if (curRoom.hasObject(LOCK_D)) {
 					if (player1.hasObject(KEY)) {
 						//unlock
 					}
@@ -1156,7 +1191,7 @@ int game() {
 				}
 				else {
 					player1.y++;
-					player1.location += chapter1[0].width;
+					player1.location += curLevel->width;
 					has_moved = true;
 				}
 			}
@@ -1169,21 +1204,41 @@ int game() {
 		}
 	}
 
+	int curLoc = player1.location;
+	size_t curLoc_t = curLoc;
+	player1.hidden_map[curLoc] = false;
+	if (curLoc - curLevel->width >= 0)
+		if (!curLevel->rooms[curLoc].hasObject(WALL_U) || curLevel->rooms[curLoc - curLevel->width].hasObject(WALL))
+			if (!curLevel->rooms[curLoc - curLevel->width].hasObject(HIDDEN))
+				player1.hidden_map[curLoc - curLevel->width] = false;
+	if (curLoc_t + curLevel->width < curLevel->rooms.size())
+		if (!curLevel->rooms[curLoc].hasObject(WALL_D) || curLevel->rooms[curLoc + curLevel->width].hasObject(WALL))
+			if (!curLevel->rooms[curLoc + curLevel->width].hasObject(HIDDEN))
+				player1.hidden_map[curLoc + curLevel->width] = false;
+	if (curLoc - 1 >= 0)
+		if (!curLevel->rooms[curLoc].hasObject(WALL_L) || curLevel->rooms[curLoc - 1].hasObject(WALL))
+			if (!curLevel->rooms[curLoc - 1].hasObject(HIDDEN))
+				player1.hidden_map[curLoc - 1] = false;
+	if (curLoc_t + 1 < curLevel->rooms.size())
+		if (!curLevel->rooms[curLoc].hasObject(WALL_R) || curLevel->rooms[curLoc + 1].hasObject(WALL))
+			if (!curLevel->rooms[curLoc + 1].hasObject(HIDDEN))
+				player1.hidden_map[curLoc + 1] = false;
+
 	if (has_moved) {
-		room* temp_room = &chapter1[0].rooms[player1.location];
-		if (temp_room->hasObject(PRESSURE_PLATE)) {
-			if (temp_room->activates_multiple) {
-				for (unsigned int i = 0; i < temp_room->rooms_activated.size(); i++)
-					chapter1[0].rooms[temp_room->rooms_activated[i]].activate();
+		room* curRoom = &curLevel->rooms[player1.location];
+		if (curRoom->hasObject(PRESSURE_PLATE)) {
+			if (curRoom->activates_multiple) {
+				for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++)
+					curLevel->rooms[curRoom->rooms_activated[i]].activate();
 			}
 			else
-				chapter1[0].rooms[temp_room->activates_room].activate();
+				curLevel->rooms[curRoom->activates_room].activate();
 		}
-		else if (temp_room->hasObject(TELEPORT)) {
-			int teleport_to = temp_room->teleport_to;
+		else if (curRoom->hasObject(TELEPORT)) {
+			int teleport_to = curRoom->teleport_to;
 			int temp = -1;
-			for (int y = 0; y < chapter1[0].height; y++) {
-				for (int x = 0; x < chapter1[0].width; x++) {
+			for (int y = 0; y < curLevel->height; y++) {
+				for (int x = 0; x < curLevel->width; x++) {
 					temp++;
 					if (temp == teleport_to) {
 						player1.x = x;
@@ -1193,14 +1248,11 @@ int game() {
 				}
 			}
 		}
-		else if (temp_room->hasObject(POWERUP)) {
-			player1.addInventory(temp_room->powerup);
-			temp_room->removeObject(POWERUP);
-			for (unsigned int i = 0; i < player1.inventory.size(); i++)
-				std::cout << player1.inventory[i] << ", ";
-			std::cout << std::endl;
+		else if (curRoom->hasObject(POWERUP)) {
+			player1.addInventory(curRoom->powerup);
+			curRoom->removeObject(POWERUP);
 		}
-		if (temp_room->hasObjectsOr({CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD}))
+		if (curRoom->hasObjectsOr({CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD}))
 			player1.entered_small = true;
 		else {
 			if (player1.entered_small) {
@@ -1208,14 +1260,33 @@ int game() {
 				player1.is_tiny = false;
 			}
 		}
-		if (temp_room->hasObject(KILL)) {
-			int temp_lives = player1.lives - 1;
-			std::vector<int> temp_inventory = player1.inventory;
+		if (curRoom->hasObject(KILL)) {
+			int lives = player1.lives - 1;
+			std::vector<int> inventory = player1.inventory;
 			player1.reset();
-			player1.lives = temp_lives;
-			player1.inventory = temp_inventory;
+			player1.lives = lives;
+			player1.inventory = inventory;
+			int temp = 0, tempX = 0, tempY = 0;
+			while (player1.x == -1) {
+				if (curLevel->rooms[temp].hasObject(START)) {
+					player1.x = tempX;
+					player1.y = tempY;
+					player1.location = temp;
+				}
+				else {
+					temp++;
+					tempX++;
+					if (tempX >= curLevel->width) {
+						tempX = 0;
+						tempY++;
+					}
+				}
+			}
 		}
 	}
+
+	curLoc = player1.location;
+	player1.hidden_map[curLoc] = false;
 
 	if (player1.lives <= 0)
 		return 1;

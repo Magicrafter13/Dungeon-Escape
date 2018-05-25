@@ -12,12 +12,15 @@
 #include <3ds.h>
 #include <citro3d.h>
 #include "gfx/pp2d.h"
+//#include <citro3d.h>
 #include "audio/filesystem.h"
 #include "audio/sfx.h"
 #include "file/file_access.hpp"
 #include <limits>
 #include <vector>
 #include <algorithm>
+
+//#include "vshader_shbin.h"
 
 #define ANSI "\x1b["
 #define RED "31"
