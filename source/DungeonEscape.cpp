@@ -69,7 +69,7 @@ force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
 error_50x50, emptyID, floorID,
-small_invID, none_leftID, counterID, player_smallID;
+small_invID, none_leftID, counterID, player_smallID, endID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 /// Powerups
@@ -623,7 +623,8 @@ void load_textures() {
 		"player",
 		"temp_powerup",
 		"player_tiny",
-		"kill"
+		"kill",
+		"end"
 	};
 	std::vector<size_t*> misc_p = {
 		&pressure_plateID,
@@ -635,7 +636,8 @@ void load_textures() {
 		&playerID,
 		&powerupID,
 		&player_smallID,
-		&killID
+		&killID,
+		&endID
 	};
 	for (id = i; id < i + misc.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
@@ -953,6 +955,8 @@ int game() {
 					pp2d_draw_texture(powerupID, 80 * rel_x, 80 * rel_y);
 				if (curLevel->rooms[tRoom].hasObject(KILL))
 					pp2d_draw_texture(killID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(EXIT))
+					pp2d_draw_texture(endID, 80 * rel_x, 80 * rel_y);
 			}
 			if (curLevel->rooms[tRoom].hasObject(WALL_L) && tRoom - curLevel->width >= 0)
 				if (curLevel->rooms[tRoom - curLevel->width].hasObject(WALL_L))
@@ -1266,6 +1270,38 @@ int game() {
 			player1.reset();
 			player1.lives = lives;
 			player1.inventory = inventory;
+			int temp = 0, tempX = 0, tempY = 0;
+			while (player1.x == -1) {
+				if (curLevel->rooms[temp].hasObject(START)) {
+					player1.x = tempX;
+					player1.y = tempY;
+					player1.location = temp;
+				}
+				else {
+					temp++;
+					tempX++;
+					if (tempX >= curLevel->width) {
+						tempX = 0;
+						tempY++;
+					}
+				}
+			}
+		}
+		if (curRoom->hasObject(EXIT)) {
+			int lives = player1.lives;
+			std::vector<int> inventory = player1.inventory;
+			player1.reset();
+			player1.lives = lives;
+			player1.inventory = inventory;
+			lvl++;
+			if (lvl = game_data[chapter].levels.size()) {
+				lvl = 0;
+				chapter++;
+				if (chapter = game_data.size()) {
+					//game win or whatever
+					ret_val = 1;
+				}
+			}
 			int temp = 0, tempX = 0, tempY = 0;
 			while (player1.x == -1) {
 				if (curLevel->rooms[temp].hasObject(START)) {
