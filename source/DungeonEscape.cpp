@@ -40,12 +40,9 @@ enum room_items {
 	UNLOCK_L = 37, UNLOCK_R = 38, UNLOCK_U = 39, UNLOCK_D = 40,
 	TELEPORT = 41, NULL_TELEPORT = 42,
 	FORCE_U = 43, FORCE_D = 44, FORCE_L = 45, FORCE_R = 46,
-	EXIT = 47, POWERUP = 48, HIDDEN = 49
-};
-
-/// Player items
-enum player_items {
-	KEY = 0
+	EXIT = 47, POWERUP = 48, HIDDEN = 49,
+	SPIKES = 50, CHEST = 51,
+	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55
 };
 
 size_t
@@ -75,7 +72,10 @@ std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 /// Powerups
 enum powerup_enum {
 	TINY = 0,
-	CROUCH = 1
+	CROUCH = 1,
+	//COINS already defined as 2
+	KEY = 3,
+	LIFE = 4
 };
 
 class room {
@@ -98,6 +98,8 @@ public:
 	room(std::vector<int>, std::vector<int>, bool);
 	room(std::vector<int>, int[2]);
 	room(std::vector<int>, std::vector<int>);
+	room(std::vector<int>, std::vector<int>, bool, std::vector<int>);
+	room(std::vector<int>, std::vector<int>, int[2], bool);
 	void reset() {
 		objects = dobjects;
 		before_activation = dbefore_activation;
@@ -200,6 +202,33 @@ room::room(std::vector<int> fobjects, std::vector<int> rooms_to_activate) {
 	dobjects = fobjects;
 }
 
+room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa, std::vector<int> rooms_to_activate) {
+	objects = fobjects_b;
+	dobjects = fobjects_b;
+	before_activation = fobjects_b;
+	dbefore_activation = fobjects_b;
+	after_activation = fobjects_a;
+	dafter_activation = fobjects_a;
+	has_before_and_after = hbaa;
+	activates_multiple = true;
+	rooms_activated = rooms_to_activate;
+}
+
+room::room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, int powerups[2], bool hbaa) {
+	objects = fobjects_b;
+	dobjects = fobjects_b;
+	before_activation = fobjects_b;
+	dbefore_activation = fobjects_b;
+	after_activation = fobjects_a;
+	dafter_activation = fobjects_a;
+	has_before_and_after = hbaa;
+	activates_multiple = false;
+	powerup[0] = powerups[0];
+	dpowerup[0] = powerups[0];
+	powerup[1] = powerups[1];
+	dpowerup[1] = powerups[1];
+}
+
 class level {
 public:
 	int width;
@@ -282,6 +311,8 @@ public:
 		is_tiny = false;
 		for (unsigned int i = 0; i < inventory.size(); i++)
 			inventory[i] = 0;
+		for (unsigned int i = 0; i < hidden_map.size(); i++)
+			hidden_map[i] = true;
 		entered_small = false;
 		lives = 3;
 	}
@@ -397,7 +428,90 @@ std::vector<level_set> game_data {
 			room({WALL}),
 			room({WALL}),
 			room({WALL}) //row 10
-		})
+		}),
+		level(9, 9, {
+			room({START, WALL_U, WALL_L, WALL_D}),
+			room({EMPTY, WALL_U, SMALL_DOWN, SMALL_RIGHT}),
+			room({EMPTY, CRAWL_LR}),
+			room({EMPTY, SMALL_LEFT, WALL_U, WALL_D, SMALL_RIGHT}),
+			room({EMPTY, CRAWL_LD}),
+			room({POWERUP, WALL_U, CRAWL_UD}, new int[2]{CROUCH, 3}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}), //row 1
+			room({WALL}),
+			room({EMPTY, CRAWL_UD}),
+			room({EMPTY, WALL_U, WALL_L}),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({EMPTY, SMALL_DOWN, SMALL_UP, SMALL_RIGHT}),
+			room({EMPTY, CRAWL_LU}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}), //row 2
+			room({HIDDEN, WALL_U, WALL_L, WALL_R, KILL}),
+			room({WALL_L, WALL_D, WALL_R, SMALL_UP}, new int[2]{TINY, 3}),
+			room({EMPTY, WALL_L, WALL_R}),
+			room({HIDDEN, TELEPORT, WALL_L, WALL_U, WALL_R}, 24),
+			room({SMALL_UP, WALL_L, WALL_D, SPIKES}),
+			room({WALL_U, WALL_R, WALL_D, POWERUP}, new int[2]{KEY, 1}),
+			room({WALL_U, WALL_L, WALL_D, NULL_TELEPORT}),
+			room({WALL_U, WALL_D, SPIKES}),
+			room({WALL_U, WALL_R, CHEST}), //row 3
+			room({WALL_L, WALL_D, EMPTY}),
+			room({HIDDEN, PRESSURE_PLATE, WALL_U, WALL_R}, {36, 37}),
+			room({EMPTY, WALL_L, WALL_D}),
+			room({EMPTY}),
+			room({HIDDEN, WALL_U, WALL_R, WALL_D, KILL}),
+			room({EMPTY, WALL_L, WALL_U}),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({EMPTY, WALL_U, WALL_R}),
+			room({EMPTY, WALL_L, WALL_R}, {EMPTY, WALL_L, WALL_R, WALL_D}, true), //row 4
+			room({HIDDEN, WALL}, {HIDDEN, EXIT, WALL_U, WALL_L, WALL_D}, true),
+			room({EMPTY, WALL_L}, {EMPTY}, true),
+			room({EMPTY, WALL_U, WALL_R}),
+			room({HIDDEN, WALL_L, WALL_D, WALL_R, KILL}),
+			room({WALL}),
+			room({EMPTY, WALL_L, WALL_R}),
+			room({WALL}),
+			room({SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE}, {SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE, WALL_R}, true, {43, 44}),
+			room({EMPTY, WALL_R, WALL_D}, {WALL}, true), //row 5
+			room({WALL}),
+			room({HIDDEN, WALL_L, WALL_D, WALL_R, PRESSURE_PLATE}, {36, 37}),
+			room({EMPTY, WALL_L, WALL_D}),
+			room({EMPTY, WALL_U, WALL_D}),
+			room({SPIKE_WALL_U, WALL_D}, new int[2]{COINS, 2}),
+			room({WALL_D}, {WALL_D, POWERUP}, new int[2]{LIFE, 1}, false),
+			room({HIDDEN, WALL_U, WALL_D, TELEPORT, SPIKE_WALL_R}, 60),
+			room({WALL}),
+			room({WALL}), //row 6
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}, {WALL}, true),
+			room({WALL_U, WALL_L, WALL_R, TELEPORT}, 51),
+			room({WALL}),
+			room({WALL}), //row 7
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL_U, WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE}, {50, 59}),
+			room({EMPTY}),
+			room({HIDDEN, WALL_U, WALL_D, WALL_R, POWERUP}, new int[2]{COINS, 50}),
+			room({WALL}), //row 8
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL}),
+			room({WALL_L, WALL_D, WALL_R, HIDDEN, POWERUP}, new int[2]{TINY, 3}),
+			room({WALL}),
+			room({WALL}) //row 9
+		}),
 	})
 };
 
@@ -949,7 +1063,7 @@ int game() {
 					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
 					pp2d_draw_texture(lock_uID, 80 * rel_x, 16 * (rel_y + 1));
 				}
-				if (curLevel->rooms[tRoom].hasObject(TELEPORT))
+				if (curLevel->rooms[tRoom].hasObjectsOr({TELEPORT, NULL_TELEPORT}))
 					pp2d_draw_texture(teleportID, 80 * rel_x, 80 * rel_y);
 				if (curLevel->rooms[tRoom].hasObject(POWERUP))
 					pp2d_draw_texture(powerupID, 80 * rel_x, 80 * rel_y);
@@ -1101,14 +1215,6 @@ int game() {
 						//play sound?
 					}
 				}
-				else if (curRoom.hasObject(LOCK_L)) {
-					if (player1.hasObject(KEY)) {
-						//unlock
-					}
-					else {
-						//play sound?
-					}
-				}
 				else {
 					player1.x--;
 					player1.location -= 1;
@@ -1126,14 +1232,6 @@ int game() {
 						player1.x++;
 						player1.location += 1;
 						has_moved = true;
-					}
-					else {
-						//play sound?
-					}
-				}
-				else if (curRoom.hasObject(LOCK_R)) {
-					if (player1.hasObject(KEY)) {
-						//unlock
 					}
 					else {
 						//play sound?
@@ -1158,14 +1256,6 @@ int game() {
 						//play sound?
 					}
 				}
-				else if (curRoom.hasObject(LOCK_U)) {
-					if (player1.hasObject(KEY)) {
-						//unlock
-					}
-					else {
-						//play sound?
-					}
-				}
 				else {
 					player1.y--;
 					player1.location -= curLevel->width;
@@ -1180,14 +1270,6 @@ int game() {
 						player1.y++;
 						player1.location += curLevel->width;
 						has_moved = true;
-					}
-					else {
-						//play sound?
-					}
-				}
-				else if (curRoom.hasObject(LOCK_D)) {
-					if (player1.hasObject(KEY)) {
-						//unlock
 					}
 					else {
 						//play sound?
@@ -1294,14 +1376,15 @@ int game() {
 			player1.lives = lives;
 			player1.inventory = inventory;
 			lvl++;
-			if (lvl = game_data[chapter].levels.size()) {
+			if (lvl == game_data[chapter].level_count) {
 				lvl = 0;
 				chapter++;
-				if (chapter = game_data.size()) {
+				if (chapter == game_data.size()) {
 					//game win or whatever
 					ret_val = 1;
 				}
 			}
+			curLevel = &game_data[chapter].levels[lvl];
 			int temp = 0, tempX = 0, tempY = 0;
 			while (player1.x == -1) {
 				if (curLevel->rooms[temp].hasObject(START)) {
@@ -1317,6 +1400,11 @@ int game() {
 						tempY++;
 					}
 				}
+			}
+			player1.hidden_map.resize(curLevel->rooms.size());
+			player1.hidden_map.clear();
+			for (unsigned int i = 0; i < curLevel->rooms.size(); i++) {
+				player1.hidden_map[i] = true;
 			}
 		}
 	}
