@@ -303,6 +303,7 @@ public:
 	int lives = 3;
 	player(int, int, int);
 	std::vector<bool> hidden_map;
+	bool force_u, force_d, force_l, force_r;
 	void reset() {
 		x = default_x;
 		y = default_y;
@@ -473,7 +474,7 @@ std::vector<level_set> game_data {
 			room({WALL}),
 			room({EMPTY, WALL_L, WALL_R}),
 			room({WALL}),
-			room({SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE}, {SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE, WALL_R}, true, {43, 44}),
+			room({SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE}, {SPIKE_WALL_L, SPIKE_WALL_D, PRESSURE_PLATE, WALL_R}, true, {43, 44, 35}),
 			room({EMPTY, WALL_R, WALL_D}, {WALL}, true), //row 5
 			room({WALL}),
 			room({HIDDEN, WALL_L, WALL_D, WALL_R, PRESSURE_PLATE}, {36, 37}),
@@ -1053,15 +1054,15 @@ int game() {
 				}
 				if (curLevel->rooms[tRoom].hasObject(LOCK_R)) {
 					pp2d_draw_texture(lock_rID, 80 * rel_x, 80 * rel_y);
-					pp2d_draw_texture(lock_lID, 16 * (rel_x + 1), 80 * rel_y);
+					pp2d_draw_texture(lock_lID, 80 * (rel_x + 1), 80 * rel_y);
 				}
 				if (curLevel->rooms[tRoom].hasObject(LOCK_U)) {
 					pp2d_draw_texture(lock_uID, 80 * rel_x, 80 * rel_y);
-					pp2d_draw_texture(lock_dID, 80 * rel_x, 16 * (rel_y - 1));
+					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * (rel_y - 1));
 				}
 				if (curLevel->rooms[tRoom].hasObject(LOCK_D)) {
 					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
-					pp2d_draw_texture(lock_uID, 80 * rel_x, 16 * (rel_y + 1));
+					pp2d_draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1));
 				}
 				if (curLevel->rooms[tRoom].hasObjectsOr({TELEPORT, NULL_TELEPORT}))
 					pp2d_draw_texture(teleportID, 80 * rel_x, 80 * rel_y);
@@ -1153,6 +1154,8 @@ int game() {
 	hidScanInput();
 	kDown = hidKeysDown();
 
+	bool triggerKill = false;
+
 	if (kDown & KEY_START) {
 		paused = (paused ? false : true);
 		if (!paused) {
@@ -1204,12 +1207,13 @@ int game() {
 	else {
 		room curRoom = curLevel->rooms[player1.location];
 		if (kDown & KEY_LEFT) {
-			if (!curRoom.hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD})) {
+			if (!curRoom.hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD, SPIKE_WALL_L})) {
 				if (curRoom.hasObject(SMALL_LEFT)) {
 					if (player1.is_tiny) {
 						player1.x--;
 						player1.location -= 1;
 						has_moved = true;
+						player1.entered_small = true;
 					}
 					else {
 						//play sound?
@@ -1226,12 +1230,13 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_RIGHT) {
-			if (!curRoom.hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD})) {
+			if (!curRoom.hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD, SPIKE_WALL_R})) {
 				if (curRoom.hasObject(SMALL_RIGHT)) {
 					if (player1.is_tiny) {
 						player1.x++;
 						player1.location += 1;
 						has_moved = true;
+						player1.entered_small = true;
 					}
 					else {
 						//play sound?
@@ -1245,12 +1250,13 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_UP) {
-			if (!curRoom.hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD })) {
+			if (!curRoom.hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD, SPIKE_WALL_U})) {
 				if (curRoom.hasObject(SMALL_UP)) {
 					if (player1.is_tiny) {
 						player1.y--;
 						player1.location -= curLevel->width;
 						has_moved = true;
+						player1.entered_small = true;
 					}
 					else {
 						//play sound?
@@ -1264,12 +1270,13 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_DOWN) {
-			if (!curRoom.hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU })) {
+			if (!curRoom.hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU, SPIKE_WALL_D})) {
 				if (curRoom.hasObject(SMALL_DOWN)) {
 					if (player1.is_tiny) {
 						player1.y++;
 						player1.location += curLevel->width;
 						has_moved = true;
+						player1.entered_small = true;
 					}
 					else {
 						//play sound?
@@ -1310,19 +1317,71 @@ int game() {
 			if (!curLevel->rooms[curLoc + 1].hasObject(HIDDEN))
 				player1.hidden_map[curLoc + 1] = false;
 
+	if (player1.force_u) {
+		if (curLevel->rooms[player1.location].hasObjectsOr({WALL_U, SMALL_UP, LOCK_U, WAY1OUTU})) {
+			player1.force_u = false;
+		}
+		else {
+			if (curLevel->rooms[player1.location].hasObject(SPIKE_WALL_U))
+				triggerKill = true;
+			else {
+				has_moved = true;
+				player1.location -= curLevel->width;
+				player1.y--;
+			}
+		}
+	}
+	if (player1.force_d) {
+		if (curLevel->rooms[player1.location].hasObjectsOr({WALL_D, SMALL_DOWN, LOCK_D, WAY1OUTD})) {
+			player1.force_d = false;
+		}
+		else {
+			if (curLevel->rooms[player1.location].hasObject(SPIKE_WALL_D))
+				triggerKill = true;
+			else {
+				has_moved = true;
+				player1.location += curLevel->width;
+				player1.y++;
+			}
+		}
+	}
+	if (player1.force_l) {
+		if (curLevel->rooms[player1.location].hasObjectsOr({WALL_L, SMALL_LEFT, LOCK_L, WAY1OUTL})) {
+			player1.force_l = false;
+		}
+		else {
+			if (curLevel->rooms[player1.location].hasObject(SPIKE_WALL_L))
+				triggerKill = true;
+			else {
+				has_moved = true;
+				player1.location--;
+				player1.x--;
+			}
+		}
+	}
+	if (player1.force_r) {
+		if (curLevel->rooms[player1.location].hasObjectsOr({WALL_R, SMALL_RIGHT, LOCK_R, WAY1OUTR})) {
+			player1.force_r = false;
+		}
+		else {
+			if (curLevel->rooms[player1.location].hasObject(SPIKE_WALL_R))
+				triggerKill = true;
+			else {
+				has_moved = true;
+				player1.location++;
+				player1.x++;
+			}
+		}
+	}
 	if (has_moved) {
 		room* curRoom = &curLevel->rooms[player1.location];
-		if (curRoom->hasObject(PRESSURE_PLATE)) {
-			if (curRoom->activates_multiple) {
-				for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++)
-					curLevel->rooms[curRoom->rooms_activated[i]].activate();
-			}
-			else
-				curLevel->rooms[curRoom->activates_room].activate();
-		}
-		else if (curRoom->hasObject(TELEPORT)) {
+		if (curRoom->hasObject(TELEPORT)) {
 			int teleport_to = curRoom->teleport_to;
 			int temp = -1;
+			player1.force_l = false;
+			player1.force_r = false;
+			player1.force_u = false;
+			player1.force_d = false;
 			for (int y = 0; y < curLevel->height; y++) {
 				for (int x = 0; x < curLevel->width; x++) {
 					temp++;
@@ -1334,17 +1393,46 @@ int game() {
 				}
 			}
 		}
-		else if (curRoom->hasObject(POWERUP)) {
+		curRoom = &curLevel->rooms[player1.location];
+		if (curRoom->hasObject(PRESSURE_PLATE)) {
+			if (curRoom->activates_multiple) {
+				for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++)
+					curLevel->rooms[curRoom->rooms_activated[i]].activate();
+			}
+			else
+				curLevel->rooms[curRoom->activates_room].activate();
+		}
+		if (curRoom->hasObject(POWERUP)) {
 			player1.addInventory(curRoom->powerup);
 			curRoom->removeObject(POWERUP);
 		}
-		if (curRoom->hasObjectsOr({CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD}))
-			player1.entered_small = true;
-		else {
-			if (player1.entered_small) {
-				player1.entered_small = false;
-				player1.is_tiny = false;
-			}
+		if (!curRoom->hasObjectsOr({CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD}) && player1.entered_small) {
+			player1.entered_small = false;
+			player1.is_tiny = false;
+		}
+		if (curRoom->hasObject(FORCE_U)) {
+			player1.force_l = false;
+			player1.force_r = false;
+			player1.force_d = false;
+			player1.force_u = true;
+		}
+		if (curRoom->hasObject(FORCE_D)) {
+			player1.force_l = false;
+			player1.force_r = false;
+			player1.force_u = false;
+			player1.force_d = true;
+		}
+		if (curRoom->hasObject(FORCE_L)) {
+			player1.force_u = false;
+			player1.force_d = false;
+			player1.force_r = false;
+			player1.force_l = true;
+		}
+		if (curRoom->hasObject(FORCE_R)) {
+			player1.force_u = false;
+			player1.force_d = false;
+			player1.force_l = false;
+			player1.force_r = true;
 		}
 		if (curRoom->hasObject(KILL)) {
 			int lives = player1.lives - 1;
