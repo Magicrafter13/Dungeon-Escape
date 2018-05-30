@@ -66,7 +66,8 @@ force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
 pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
 error_50x50, emptyID, floorID,
-small_invID, none_leftID, counterID, player_smallID, endID;
+small_invID, none_leftID, counterID, player_smallID, endID,
+spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 /// Powerups
@@ -728,6 +729,32 @@ void load_textures() {
 		textures++;
 	}
 	i = id;
+	std::vector<std::string> one_way = {
+		"outl",
+		"outr",
+		"outu",
+		"outd",
+		"inl",
+		"inr",
+		"inu",
+		"ind"
+	};
+	std::vector<size_t*> one_way_p = {
+		&way1outlID,
+		&way1outrID,
+		&way1outuID,
+		&way1outdID,
+		&way1inlID,
+		&way1inrID,
+		&way1inuID,
+		&way1indID
+	};
+	for (id = i; id < i + one_way_p.size(); id++) {
+		pp2d_load_texture_png(id, ("romfs:/sprites/way1" + one_way[id - i] + ".png").c_str());
+		*one_way_p[id - i] = id;
+		textures++;
+	}
+	i = id;
 	std::vector<std::string> misc = {
 		"pressure_plate",
 		"lock_l",
@@ -739,7 +766,11 @@ void load_textures() {
 		"temp_powerup",
 		"player_tiny",
 		"kill",
-		"end"
+		"end",
+		"spike_wall_u",
+		"spike_wall_d",
+		"spike_wall_l",
+		"spike_wall_r"
 	};
 	std::vector<size_t*> misc_p = {
 		&pressure_plateID,
@@ -752,7 +783,11 @@ void load_textures() {
 		&powerupID,
 		&player_smallID,
 		&killID,
-		&endID
+		&endID,
+		&spike_wall_uID,
+		&spike_wall_dID,
+		&spike_wall_lID,
+		&spike_wall_rID
 	};
 	for (id = i; id < i + misc.size(); id++) {
 		pp2d_load_texture_png(id, ("romfs:/sprites/" + misc[id - i] + ".png").c_str());
@@ -1064,6 +1099,30 @@ int game() {
 					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
 					pp2d_draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1));
 				}
+				if (curLevel->rooms[tRoom].hasObject(WAY1OUTL))
+					pp2d_draw_texture(way1outlID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1OUTR))
+					pp2d_draw_texture(way1outrID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1OUTU))
+					pp2d_draw_texture(way1outuID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1OUTD))
+					pp2d_draw_texture(way1outdID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1INL))
+					pp2d_draw_texture(way1inlID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1INR))
+					pp2d_draw_texture(way1inrID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1INU))
+					pp2d_draw_texture(way1inuID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(WAY1IND))
+					pp2d_draw_texture(way1indID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_L))
+					pp2d_draw_texture(spike_wall_lID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_R))
+					pp2d_draw_texture(spike_wall_rID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_U))
+					pp2d_draw_texture(spike_wall_uID, 80 * rel_x, 80 * rel_y);
+				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_D))
+					pp2d_draw_texture(spike_wall_dID, 80 * rel_x, 80 * rel_y);
 				if (curLevel->rooms[tRoom].hasObjectsOr({TELEPORT, NULL_TELEPORT}))
 					pp2d_draw_texture(teleportID, 80 * rel_x, 80 * rel_y);
 				if (curLevel->rooms[tRoom].hasObject(POWERUP))
@@ -1157,10 +1216,12 @@ int game() {
 	bool triggerKill = false;
 
 	if (kDown & KEY_START) {
-		paused = (paused ? false : true);
-		if (!paused) {
-			paused_selection = 0;
-			paused_level = "top";
+		if (!inventory) {
+			paused = (paused ? false : true);
+			if (!paused) {
+				paused_selection = 0;
+				paused_level = "top";
+			}
 		}
 	}
 
@@ -1207,7 +1268,9 @@ int game() {
 	else {
 		room curRoom = curLevel->rooms[player1.location];
 		if (kDown & KEY_LEFT) {
-			if (!curRoom.hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD, SPIKE_WALL_L})) {
+			if (!curRoom.hasObjectsOr({WALL_L, CRAWL_UD, CRAWL_RU, CRAWL_RD, WAY1OUTL, LOCK_L})) {
+				if (curRoom.hasObject(SPIKE_WALL_L))
+					triggerKill = true;
 				if (curRoom.hasObject(SMALL_LEFT)) {
 					if (player1.is_tiny) {
 						player1.x--;
@@ -1230,7 +1293,9 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_RIGHT) {
-			if (!curRoom.hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD, SPIKE_WALL_R})) {
+			if (!curRoom.hasObjectsOr({WALL_R, CRAWL_UD, CRAWL_LU, CRAWL_LD, WAY1OUTR, LOCK_R})) {
+				if (curRoom.hasObject(SPIKE_WALL_R))
+					triggerKill = true;
 				if (curRoom.hasObject(SMALL_RIGHT)) {
 					if (player1.is_tiny) {
 						player1.x++;
@@ -1250,7 +1315,9 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_UP) {
-			if (!curRoom.hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD, SPIKE_WALL_U})) {
+			if (!curRoom.hasObjectsOr({WALL_U, CRAWL_LR, CRAWL_LD, CRAWL_RD, WAY1OUTU, LOCK_U})) {
+				if (curRoom.hasObject(SPIKE_WALL_U))
+					triggerKill = true;
 				if (curRoom.hasObject(SMALL_UP)) {
 					if (player1.is_tiny) {
 						player1.y--;
@@ -1270,7 +1337,9 @@ int game() {
 			}
 		}
 		else if (kDown & KEY_DOWN) {
-			if (!curRoom.hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU, SPIKE_WALL_D})) {
+			if (!curRoom.hasObjectsOr({WALL_D, CRAWL_LR, CRAWL_LU, CRAWL_RU, WAY1OUTD, LOCK_D})) {
+				if (curRoom.hasObject(SPIKE_WALL_D))
+					triggerKill = true;
 				if (curRoom.hasObject(SMALL_DOWN)) {
 					if (player1.is_tiny) {
 						player1.y++;
@@ -1301,19 +1370,19 @@ int game() {
 	size_t curLoc_t = curLoc;
 	player1.hidden_map[curLoc] = false;
 	if (curLoc - curLevel->width >= 0)
-		if (!curLevel->rooms[curLoc].hasObject(WALL_U) || curLevel->rooms[curLoc - curLevel->width].hasObject(WALL))
+		if (!curLevel->rooms[curLoc].hasObjectsOr({WALL_U, WAY1OUTU}) || curLevel->rooms[curLoc - curLevel->width].hasObject(WALL))
 			if (!curLevel->rooms[curLoc - curLevel->width].hasObject(HIDDEN))
 				player1.hidden_map[curLoc - curLevel->width] = false;
 	if (curLoc_t + curLevel->width < curLevel->rooms.size())
-		if (!curLevel->rooms[curLoc].hasObject(WALL_D) || curLevel->rooms[curLoc + curLevel->width].hasObject(WALL))
+		if (!curLevel->rooms[curLoc].hasObjectsOr({WALL_D, WAY1OUTD}) || curLevel->rooms[curLoc + curLevel->width].hasObject(WALL))
 			if (!curLevel->rooms[curLoc + curLevel->width].hasObject(HIDDEN))
 				player1.hidden_map[curLoc + curLevel->width] = false;
 	if (curLoc - 1 >= 0)
-		if (!curLevel->rooms[curLoc].hasObject(WALL_L) || curLevel->rooms[curLoc - 1].hasObject(WALL))
+		if (!curLevel->rooms[curLoc].hasObjectsOr({WALL_L, WAY1OUTL}) || curLevel->rooms[curLoc - 1].hasObject(WALL))
 			if (!curLevel->rooms[curLoc - 1].hasObject(HIDDEN))
 				player1.hidden_map[curLoc - 1] = false;
 	if (curLoc_t + 1 < curLevel->rooms.size())
-		if (!curLevel->rooms[curLoc].hasObject(WALL_R) || curLevel->rooms[curLoc + 1].hasObject(WALL))
+		if (!curLevel->rooms[curLoc].hasObjectsOr({WALL_R, WAY1OUTR}) || curLevel->rooms[curLoc + 1].hasObject(WALL))
 			if (!curLevel->rooms[curLoc + 1].hasObject(HIDDEN))
 				player1.hidden_map[curLoc + 1] = false;
 
@@ -1434,7 +1503,7 @@ int game() {
 			player1.force_l = false;
 			player1.force_r = true;
 		}
-		if (curRoom->hasObject(KILL)) {
+		if (curRoom->hasObject(KILL) || triggerKill) {
 			int lives = player1.lives - 1;
 			std::vector<int> inventory = player1.inventory;
 			player1.reset();
