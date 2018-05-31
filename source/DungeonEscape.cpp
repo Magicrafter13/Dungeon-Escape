@@ -70,6 +70,46 @@ small_invID, none_leftID, counterID, player_smallID, endID,
 spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
+size_t getTexID(room_items item) {
+	switch (item) {
+	case WALL: return wallID;
+	case KILL: return killID;
+	case WAY1INL: return way1inlID;
+	case WAY1INR: return way1inrID;
+	case WAY1INU: return way1inuID;
+	case WAY1IND: return way1indID;
+	case WAY1OUTL: return way1outlID;
+	case WAY1OUTR: return way1outrID;
+	case WAY1OUTU: return way1outuID;
+	case WAY1OUTD: return way1outdID;
+	case WALL_L: return wall_lID;
+	case WALL_R: return wall_rID;
+	case WALL_U: return wall_uID;
+	case WALL_D: return wall_dID;
+	case CRAWL_4: return crawl_4ID;
+	case CRAWL_LR: return crawl_lrID;
+	case CRAWL_UD: return crawl_udID;
+	case CRAWL_LU: return crawl_luID;
+	case CRAWL_LD: return crawl_ldID;
+	case CRAWL_RU: return crawl_ruID;
+	case CRAWL_RD: return crawl_rdID;
+	case LOCK_L: return lock_lID;
+	case LOCK_R: return lock_rID;
+	case LOCK_U: return lock_uID;
+	case LOCK_D: return lock_dID;
+	case PRESSURE_PLATE: return pressure_plateID;
+	case TELEPORT: case NULL_TELEPORT: return teleportID;
+	case EXIT: return exitID;
+	case POWERUP: return powerupID;
+	case HIDDEN: return hiddenID;
+	case SPIKE_WALL_L: return spike_wall_lID;
+	case SPIKE_WALL_R: return spike_wall_rID;
+	case SPIKE_WALL_U: return spike_wall_uID;
+	case SPIKE_WALL_D: return spike_wall_dID;
+	default: return error_50x50;
+	}
+}
+
 /// Powerups
 enum powerup_enum {
 	TINY = 0,
@@ -78,6 +118,13 @@ enum powerup_enum {
 	KEY = 3,
 	LIFE = 4
 };
+
+size_t getTexID(powerup_enum item) {
+	switch (item) {
+	case TINY: return small_invID;
+	default: return error_50x50;
+	}
+}
 
 class room {
 	std::vector<int> dobjects;
@@ -813,43 +860,11 @@ int inventory_selection = 0;
 
 int inventoryItem(int powerup) {
 	switch (powerup) {
-	case 0:
-		return small_invID;
-		break;
-	case 2:
-	case 3:
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-	case 8:
-	case 9:
-	case 10:
-	case 11:
-	case 12:
-	case 13:
-	case 14:
-	case 15:
-	case 16:
-	case 17:
-	case 18:
-	case 19:
-	case 20:
-	case 21:
-	case 22:
-	case 23:
-	case 24:
-	case 25:
-	case 26:
-	case 27:
-	case 28:
-	case 29:
-	case 30:
-	case 31:
-		return emptyID;
-		break;
-	default:
-		return error_50x50;
+	case 0: return getTexID(TINY);
+	case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:
+	case 16: case 17: case 18: case 19: case 20: case 21: case 22: case 23: case 24: case 25: case 26:
+	case 27: case 28: case 29: case 30: case 31: return emptyID;
+	default: return error_50x50;
 	}
 }
 
@@ -1059,30 +1074,20 @@ int game() {
 			if (rel_x >= 0 && rel_y >= 0 && rel_x <= curLevel->width && rel_y <= curLevel->height && !curLevel->rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
 				pp2d_draw_texture(floorID, 80 * rel_x, 80 * rel_y);
 			if (!player1.hidden_map[tRoom]) {
-				if (curLevel->rooms[tRoom].hasObject(WALL_L))
-					pp2d_draw_texture(wall_lID, rel_x * 80, rel_y * 80);
-				if (curLevel->rooms[tRoom].hasObject(WALL_R))
-					pp2d_draw_texture(wall_rID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WALL_U))
-					pp2d_draw_texture(wall_uID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WALL_D))
-					pp2d_draw_texture(wall_dID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WALL))
-					pp2d_draw_texture(wallID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_LR))
-					pp2d_draw_texture(crawl_lrID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_UD))
-					pp2d_draw_texture(crawl_udID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_LU))
-					pp2d_draw_texture(crawl_luID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_LD))
-					pp2d_draw_texture(crawl_ldID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_RU))
-					pp2d_draw_texture(crawl_ruID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(CRAWL_RD))
-					pp2d_draw_texture(crawl_rdID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(PRESSURE_PLATE))
-					pp2d_draw_texture(pressure_plateID, 80 * rel_x, 80 * rel_y);
+				std::vector<room_items> item_arr  {
+					WALL_L, WALL_R, WALL_U, WALL_D, WALL,
+					CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD,
+					PRESSURE_PLATE,
+					WAY1OUTL, WAY1OUTR, WAY1OUTU, WAY1OUTD,
+					WAY1INL, WAY1INR, WAY1INU, WAY1IND,
+					SPIKE_WALL_L, SPIKE_WALL_R, SPIKE_WALL_U, SPIKE_WALL_D,
+					TELEPORT, NULL_TELEPORT,
+					POWERUP, KILL, EXIT
+				};
+				for (unsigned int i = 0; i < item_arr.size(); i++) {
+					if (curLevel->rooms[tRoom].hasObject(item_arr[i]))
+						pp2d_draw_texture(getTexID(item_arr[i]), rel_x * 80, rel_y * 80);
+				}
 				if (curLevel->rooms[tRoom].hasObject(LOCK_L)) {
 					pp2d_draw_texture(lock_lID, 80 * rel_x, 80 * rel_y);
 					pp2d_draw_texture(lock_rID, 80 * (rel_x - 1), 80 * rel_y);
@@ -1099,38 +1104,6 @@ int game() {
 					pp2d_draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
 					pp2d_draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1));
 				}
-				if (curLevel->rooms[tRoom].hasObject(WAY1OUTL))
-					pp2d_draw_texture(way1outlID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1OUTR))
-					pp2d_draw_texture(way1outrID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1OUTU))
-					pp2d_draw_texture(way1outuID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1OUTD))
-					pp2d_draw_texture(way1outdID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1INL))
-					pp2d_draw_texture(way1inlID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1INR))
-					pp2d_draw_texture(way1inrID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1INU))
-					pp2d_draw_texture(way1inuID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(WAY1IND))
-					pp2d_draw_texture(way1indID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_L))
-					pp2d_draw_texture(spike_wall_lID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_R))
-					pp2d_draw_texture(spike_wall_rID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_U))
-					pp2d_draw_texture(spike_wall_uID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(SPIKE_WALL_D))
-					pp2d_draw_texture(spike_wall_dID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObjectsOr({TELEPORT, NULL_TELEPORT}))
-					pp2d_draw_texture(teleportID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(POWERUP))
-					pp2d_draw_texture(powerupID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(KILL))
-					pp2d_draw_texture(killID, 80 * rel_x, 80 * rel_y);
-				if (curLevel->rooms[tRoom].hasObject(EXIT))
-					pp2d_draw_texture(endID, 80 * rel_x, 80 * rel_y);
 			}
 			if (curLevel->rooms[tRoom].hasObject(WALL_L) && tRoom - curLevel->width >= 0)
 				if (curLevel->rooms[tRoom - curLevel->width].hasObject(WALL_L))
