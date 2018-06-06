@@ -11,7 +11,9 @@
 #include <cmath>
 #include <3ds.h>
 #include <citro3d.h>
-#include "gfx/pp2d.h"
+#include <citro2d.h>
+#include "sprites.h"
+//#include "gfx/pp2d.h"
 //#include <citro3d.h>
 #include "audio/filesystem.h"
 #include "audio/sfx.h"
