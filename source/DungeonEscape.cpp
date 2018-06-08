@@ -26,7 +26,8 @@ size_t protected_textures = 0, textures = 0;
 
 std::string error_code;
 std::string error_message;
-bool error = false;
+std::string debug_log = "Debugger started:\n";
+bool error = false, debug = false;
 
 int game();
 
@@ -102,7 +103,7 @@ void init_textures() {
 	exitID = sprites_end_idx; powerupID = sprites_temp_powerup_idx; hiddenID = sprites_black_80x80_idx; playerID = sprites_player_idx;
 	pause_scr = sprites_temp_pausescreen_idx; ps_0 = sprites_temp_pausescreen_text_0_idx; ps_1 = sprites_temp_pausescreen_text_1_idx; ps_2 = sprites_temp_pausescreen_text_2_idx; ps_3 = sprites_temp_pausescreen_text_3_idx; titleID = sprites_title_idx; inventoryID = sprites_inventory_idx; inventory_selectedID = sprites_inventory_selector_idx;
 	error_50x50 = sprites_error_50x50_idx; emptyID = sprites_empty_idx; floorID = sprites_floor_idx;
-	small_invID = sprites_small_inv_idx; none_leftID = sprites_none_left_idx; counterID = sprites_counter_idx; player_smallID = sprites_player_tiny_idx; endID = 0;
+	small_invID = sprites_small_inv_idx; none_leftID = sprites_none_left_idx; counterID = sprites_counter_idx; player_smallID = sprites_player_tiny_idx; endID = sprite_exit_idx;
 	spike_wall_lID = sprites_spike_wall_l_idx; spike_wall_rID = sprites_spike_wall_r_idx; spike_wall_uID = sprites_spike_wall_u_idx; spike_wall_dID = sprites_spike_wall_d_idx;
 	ps_arrow[0] = sprites_temp_pausescreen_arrow_0_idx; ps_arrow[1] = sprites_temp_pausescreen_arrow_1_idx; ps_arrow[2] = sprites_temp_pausescreen_arrow_2_idx; ps_arrow[3] = sprites_temp_pausescreen_arrow_3_idx;
 	nxx[0] = sprites_0xx_idx; nxx[1] = sprites_1xx_idx; nxx[2] = sprites_2xx_idx; nxx[3] = sprites_3xx_idx; nxx[4] = sprites_4xx_idx; nxx[5] = sprites_5xx_idx; nxx[6] = sprites_6xx_idx; nxx[7] = sprites_7xx_idx; nxx[8] = sprites_8xx_idx; nxx[9] = sprites_9xx_idx;
@@ -722,6 +723,7 @@ int inventoryItem(int powerup) {
 }
 
 void tryInventory(int selection) {
+	if (debug) debug_log += "Testing available inventory.\n";
 	switch (selection) {
 	case 0:
 		if (player1.inventory[0] > 0 && !player1.is_tiny) {
@@ -744,9 +746,6 @@ int main(int argc, char **argv)
 	C2D_Prepare();
 	romfsInit();
 	csndInit();
-	//initSprites();
-
-	//initialize_audio();
 
 	srand(time(NULL));
 
@@ -755,6 +754,7 @@ int main(int argc, char **argv)
 	kHeld = hidKeysHeld();
 
 	if ((kDown & KEY_X) || (kHeld & KEY_X)) {
+		debug = true;
 		consoleInit(GFX_BOTTOM, &bottomScreen); consoleInit(GFX_BOTTOM, &versionWin);
 		consoleInit(GFX_BOTTOM, &killBox); consoleInit(GFX_BOTTOM, &debugBox);
 	}
@@ -850,9 +850,6 @@ int main(int argc, char **argv)
 				while (!ready_exit) {
 					hidScanInput();
 					kDown = hidKeysDown();
-					/*pp2d_begin_draw(GFX_TOP, GFX_LEFT);
-					pp2d_draw_texture(0, 400, 240);
-					pp2d_end_draw();*/
 					if (kDown & (KEY_A | KEY_B | KEY_Y | KEY_X | KEY_L | KEY_R | KEY_ZL | KEY_ZR | KEY_SELECT | KEY_START | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
 						ready_exit = true;
 
@@ -871,29 +868,27 @@ int main(int argc, char **argv)
 			paused_selection = 0;
 			bottom_screen_text = 0;
 		}
-		if (bottom_screen_text == 0) {
-			consoleSelect(&killBox); consoleClear();
-			consoleSelect(&versionWin); consoleClear();
-			consoleSelect(&bottomScreen); consoleClear();
+		if (debug) {
+			if (bottom_screen_text == 0) {
+				consoleSelect(&killBox); consoleClear();
+				consoleSelect(&versionWin); consoleClear();
+				consoleSelect(&bottomScreen); consoleClear();
 
-			consoleSelect(&killBox);
-			std::cout << CRESET ANSI B_RED CEND;
-			for (int i = 0; i < 80; i++)
-				std::cout << " ";
+				consoleSelect(&killBox);
+				std::cout << CRESET ANSI B_RED CEND;
+				for (int i = 0; i < 80; i++)
+					std::cout << " ";
 
-			consoleSelect(&versionWin);
-			std::cout << CRESET "     Tap red area any time to exit";
-			std::cout << "Breakout Version: " ANSI RED CEND << versiontxtt << CRESET " " ANSI YELLOW CEND << versiontxtn;
-			std::cout << ANSI B_RED ASEP GREEN CEND "              Build: " << buildnumber;
+				consoleSelect(&versionWin);
+				std::cout << CRESET "     Tap red area any time to exit";
+				std::cout << ANSI B_RED ASEP GREEN CEND "     Build:\n";
+				std::cout << ANSI B_RED ASEP BRIGHT ASEP GREEN CEND "                         " << buildnumber;
 
-			consoleSelect(&bottomScreen);
-			std::cout << CRESET ANSI "20;0" PEND;
+				consoleSelect(&bottomScreen);
+				std::cout << debug_log;
 
-			std::cout << CRESET ANSI "2;0" PEND "Press Select to begin." << std::endl;
-			std::cout << "Press X to see what I'm working on or have planned." << std::endl;
-			std::cout << "Press Y to open level editor." << std::endl << std::endl;
-
-			bottom_screen_text = 1;
+				bottom_screen_text = 1;
+			}
 		}
 
 		// Render the scene
@@ -901,7 +896,8 @@ int main(int argc, char **argv)
 		C2D_TargetClear(top, C2D_Color32f(0.6f, 0.6f, 0.6f, 1.0f));
 		C2D_SceneBegin(top);
 		draw_texture(titleID , 0, 0);
-		//draw_texture(wall_connector_lID, 0, 0);
+		C2D_SceneBegin(bot);
+		if (!debug) draw_texture(endID, 0, 0);
 		C3D_FrameEnd(0);
 
 		hidTouchRead(&touch);
@@ -1103,6 +1099,11 @@ int game() {
 		}
 		else if (kDown & KEY_A) {
 			ret_val = paused_action(paused_selection);
+			if (debug) {
+				debug_log += "Pause Menu Option Selected\n";
+				consoleSelect(&debugBox);
+				std::cout << "paused_action returned: " << ret_val << std::endl;
+			}
 		}
 		else if (kDown & KEY_B) {
 			paused_return_level();
@@ -1120,7 +1121,7 @@ int game() {
 		else if (kDown & KEY_RIGHT)
 			inventory_selection++;
 		else if (kDown & KEY_A)
-			tryInventory(inventory_selection);
+			tryInventory(inventory_selection);sdf
 		if (inventory_selection <= -1)
 			inventory_selection = 0;
 		if (inventory_selection >= player1.inventory.size())
