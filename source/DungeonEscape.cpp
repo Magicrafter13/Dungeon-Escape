@@ -4,7 +4,7 @@
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
 
-std::string buildnumber = "18.06.08.1625";
+std::string buildnumber = "18.06.08.1023";
 
 static C2D_SpriteSheet spriteSheet;
 
@@ -28,7 +28,7 @@ size_t protected_textures = 0, textures = 0;
 std::string error_code;
 std::string error_message;
 std::string debug_log = "Debugger started:\n";
-bool error = false, debug = false;
+bool error = false, debug = false, update_debug_screen = true;
 
 int game();
 
@@ -720,7 +720,10 @@ int inventoryItem(int powerup) {
 }
 
 void tryInventory(int selection) {
-	if (debug) debug_log += "Testing available inventory.\n";
+	if (debug) {
+		debug_log += "Testing available inventory.\n";
+		update_debug_screen = true;
+	}
 	switch (selection) {
 	case 0:
 		if (player1.inventory[0] > 0 && !player1.is_tiny) {
@@ -758,7 +761,7 @@ int main(int argc, char **argv)
 
 	// Create screens
 	top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-	bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	if (!debug) bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	// Load graphics
 	spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
 	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
@@ -822,6 +825,9 @@ int main(int argc, char **argv)
 				C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 				top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 				C2D_Prepare();
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				C2D_TargetClear(top, C2D_Color32f(0.6f, 0.6f, 0.6f, 1.0f));
+				C3D_FrameEnd(0);
 				consoleInit(GFX_BOTTOM, &bottomScreen); consoleInit(GFX_BOTTOM, &versionWin);
 				consoleInit(GFX_BOTTOM, &killBox); consoleInit(GFX_BOTTOM, &debugBox);
 				consoleSelect(&bottomScreen); consoleClear();
@@ -866,7 +872,7 @@ int main(int argc, char **argv)
 			bottom_screen_text = 0;
 		}
 		if (debug) {
-			if (bottom_screen_text == 0) {
+			if (update_debug_screen) {
 				consoleSelect(&killBox); consoleClear();
 				consoleSelect(&versionWin); consoleClear();
 				consoleSelect(&bottomScreen); consoleClear();
@@ -878,13 +884,12 @@ int main(int argc, char **argv)
 
 				consoleSelect(&versionWin);
 				std::cout << CRESET "     Tap red area any time to exit";
-				std::cout << ANSI B_RED ASEP GREEN CEND "     Build:\n";
-				std::cout << ANSI B_RED ASEP BRIGHT ASEP GREEN CEND "                         " << buildnumber;
+				std::cout << ANSI GREEN CEND "Build:" ANSI B_RED ASEP BRIGHT ASEP GREEN CEND "               " << buildnumber;
 
 				consoleSelect(&bottomScreen);
 				std::cout << debug_log;
 
-				bottom_screen_text = 1;
+				update_debug_screen = false;
 			}
 		}
 
@@ -893,8 +898,10 @@ int main(int argc, char **argv)
 		C2D_TargetClear(top, C2D_Color32f(0.6f, 0.6f, 0.6f, 1.0f));
 		C2D_SceneBegin(top);
 		draw_texture(titleID , 0, 0);
-		C2D_SceneBegin(bot);
-		if (!debug) draw_texture(endID, 0, 0);
+		if (!debug) {
+			C2D_SceneBegin(bot);
+			draw_texture(endID, 0, 0);
+		}
 		C3D_FrameEnd(0);
 
 		hidTouchRead(&touch);
@@ -1055,7 +1062,19 @@ int game() {
 		draw_texture(xnx[second], 7 * 50, (3 * 50) + 40);
 		draw_texture(xxn[third], 7 * 50, (3 * 50) + 40);
 	}
+	if (!debug) {
+		//draw to bottom screen
+	}
 	C3D_FrameEnd(0);
+	if (debug) {
+		if (update_debug_screen) {
+			consoleSelect(&bottomScreen);
+			consoleClear();
+			std::cout << debug_log;
+			update_debug_screen = false;
+		}
+		consoleSelect(&debugBox);
+	}
 
 	hidTouchRead(&touch);
 
@@ -1076,6 +1095,10 @@ int game() {
 			if (!paused) {
 				paused_selection = 0;
 				paused_level = "top";
+			}
+			if (debug) {
+				debug_log += "Pause menu opened.\n";
+				update_debug_screen = true;
 			}
 		}
 	}
@@ -1098,13 +1121,14 @@ int game() {
 			ret_val = paused_action(paused_selection);
 			if (debug) {
 				debug_log += "Pause Menu Option Selected\n";
-				consoleSelect(&debugBox);
+				update_debug_screen = true;
 				std::cout << "paused_action returned: " << ret_val << std::endl;
 			}
 		}
 		else if (kDown & KEY_B) {
 			paused_return_level();
 		}
+		if (debug && (kDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT))) std::cout << "sel: " << paused_selection << std::endl;
 	}
 	else if (inventory) {
 		if (kDown & KEY_B)
@@ -1123,6 +1147,7 @@ int game() {
 			inventory_selection = 0;
 		if (inventory_selection >= player1.inventory.size())
 			inventory_selection = player1.inventory.size() - 1;
+		if (debug && (kDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT))) std::cout << "sel: " << inventory_selection << std::endl;
 	}
 	else {
 		room curRoom = curLevel->rooms[player1.location];
@@ -1267,6 +1292,11 @@ int game() {
 	}
 	if (has_moved) {
 		room* curRoom = &curLevel->rooms[player1.location];
+		if (debug) {
+			for (unsigned int i = 0; i < curRoom->objects.size(); i++)
+				std::cout << " " << curRoom->objects[i];
+			std::cout << std::endl;
+		}
 		if (curRoom->hasObject(TELEPORT)) {
 			int teleport_to = curRoom->teleport_to;
 			int temp_position = -1;
