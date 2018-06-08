@@ -1,9 +1,10 @@
 #include "DungeonEscape.hpp"
-//#include "gfx/pp2d.h"
 
 #define MAX_SPRITES   88
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
+
+std::string buildnumber = "18.06.08.1625";
 
 static C2D_SpriteSheet spriteSheet;
 
@@ -103,7 +104,7 @@ void init_textures() {
 	exitID = sprites_end_idx; powerupID = sprites_temp_powerup_idx; hiddenID = sprites_black_80x80_idx; playerID = sprites_player_idx;
 	pause_scr = sprites_temp_pausescreen_idx; ps_0 = sprites_temp_pausescreen_text_0_idx; ps_1 = sprites_temp_pausescreen_text_1_idx; ps_2 = sprites_temp_pausescreen_text_2_idx; ps_3 = sprites_temp_pausescreen_text_3_idx; titleID = sprites_title_idx; inventoryID = sprites_inventory_idx; inventory_selectedID = sprites_inventory_selector_idx;
 	error_50x50 = sprites_error_50x50_idx; emptyID = sprites_empty_idx; floorID = sprites_floor_idx;
-	small_invID = sprites_small_inv_idx; none_leftID = sprites_none_left_idx; counterID = sprites_counter_idx; player_smallID = sprites_player_tiny_idx; endID = sprite_exit_idx;
+	small_invID = sprites_small_inv_idx; none_leftID = sprites_none_left_idx; counterID = sprites_counter_idx; player_smallID = sprites_player_tiny_idx; endID = sprites_exit_idx;
 	spike_wall_lID = sprites_spike_wall_l_idx; spike_wall_rID = sprites_spike_wall_r_idx; spike_wall_uID = sprites_spike_wall_u_idx; spike_wall_dID = sprites_spike_wall_d_idx;
 	ps_arrow[0] = sprites_temp_pausescreen_arrow_0_idx; ps_arrow[1] = sprites_temp_pausescreen_arrow_1_idx; ps_arrow[2] = sprites_temp_pausescreen_arrow_2_idx; ps_arrow[3] = sprites_temp_pausescreen_arrow_3_idx;
 	nxx[0] = sprites_0xx_idx; nxx[1] = sprites_1xx_idx; nxx[2] = sprites_2xx_idx; nxx[3] = sprites_3xx_idx; nxx[4] = sprites_4xx_idx; nxx[5] = sprites_5xx_idx; nxx[6] = sprites_6xx_idx; nxx[7] = sprites_7xx_idx; nxx[8] = sprites_8xx_idx; nxx[9] = sprites_9xx_idx;
@@ -437,10 +438,6 @@ player::player(int fx, int fy, int ftexture) {
 	texture = ftexture; default_texture = ftexture;
 	location = 0; default_location = 0;
 }
-
-//init
-std::string versiontxtt = "  Beta ", versiontxtn = "01.00.00";
-std::string buildnumber = "18.05.01.1142";
 
 level_set chapter1 = level_set(3, std::vector<level>{
 	level(8, 10, {
@@ -1121,7 +1118,7 @@ int game() {
 		else if (kDown & KEY_RIGHT)
 			inventory_selection++;
 		else if (kDown & KEY_A)
-			tryInventory(inventory_selection);sdf
+			tryInventory(inventory_selection);
 		if (inventory_selection <= -1)
 			inventory_selection = 0;
 		if (inventory_selection >= player1.inventory.size())
