@@ -4,7 +4,7 @@
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
 
-std::string buildnumber = "18.06.08.1023";
+std::string buildnumber = "18.06.08.1028";
 
 static C2D_SpriteSheet spriteSheet;
 
@@ -768,9 +768,10 @@ int main(int argc, char **argv)
 
 	init_textures();
 
+	consoleSetWindow(&bottomScreen, 0, 0, 24, 26);
 	consoleSetWindow(&versionWin, 6, 26, 34, 4);
 	consoleSetWindow(&killBox, 0, 28, 40, 2);
-	consoleSetWindow(&debugBox, 18, 4, 9, 12);
+	consoleSetWindow(&debugBox, 23, 0, 16, 26);
 
 	int bottom_screen_text = 0;
 
