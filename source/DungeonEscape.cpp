@@ -18,7 +18,7 @@ u32 kDown, kHeld, kUp;
 touchPosition touch;
 
 PrintConsole bottomScreen, versionWin, killBox, debugBox;
-C3D_RenderTarget* top;
+C3D_RenderTarget* top, *bot;
 
 FS_Archive sdmcArchive;
 
@@ -754,33 +754,33 @@ int main(int argc, char **argv)
 	kDown = hidKeysDown();
 	kHeld = hidKeysHeld();
 
-	/*if ((kDown & KEY_X) || (kHeld & KEY_X)) {
+	if ((kDown & KEY_X) || (kHeld & KEY_X)) {
 		consoleInit(GFX_BOTTOM, &bottomScreen); consoleInit(GFX_BOTTOM, &versionWin);
 		consoleInit(GFX_BOTTOM, &killBox); consoleInit(GFX_BOTTOM, &debugBox);
 	}
-	else
-		pp2d_set_screen_color(GFX_BOTTOM, ABGR8(255, 0, 0, 0));*/
 
 	// Create screens
-	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-
+	top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	// Load graphics
 	spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
 	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
 
-	/*consoleSetWindow(&versionWin, 6, 26, 34, 4);
+	init_textures();
+
+	consoleSetWindow(&versionWin, 6, 26, 34, 4);
 	consoleSetWindow(&killBox, 0, 28, 40, 2);
-	consoleSetWindow(&debugBox, 18, 4, 9, 12);*/
+	consoleSetWindow(&debugBox, 18, 4, 9, 12);
 
 	int bottom_screen_text = 0;
 
 	// Main loop
 	while (aptMainLoop()) {
-		/*hidScanInput();
+		hidScanInput();
 		kDown = hidKeysDown();
 		kHeld = hidKeysHeld();
-		kUp = hidKeysUp();*/
-		/*if (kDown & KEY_START) {
+		kUp = hidKeysUp();
+		if (kDown & KEY_START) {
 			chapter = 0;
 			lvl = 0;
 			player1.reset();
@@ -816,12 +816,16 @@ int main(int argc, char **argv)
 			if (ret_val == 2)
 				break;
 			if (ret_val == 3) {
-				//error found*/
-				/*pp2d_exit();
-				pp2d_init();
-				pp2d_set_screen_color(GFX_TOP, ABGR8(255, 149, 149, 149));
-				pp2d_load_texture_png(0, "romfs:/sprites/empty.png");*/
-				/*consoleInit(GFX_BOTTOM, &bottomScreen); consoleInit(GFX_BOTTOM, &versionWin);
+				//error found
+				C2D_Fini();
+				C3D_Fini();
+				gfxExit();
+				gfxInitDefault();
+				C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+				C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+				top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+				C2D_Prepare();
+				consoleInit(GFX_BOTTOM, &bottomScreen); consoleInit(GFX_BOTTOM, &versionWin);
 				consoleInit(GFX_BOTTOM, &killBox); consoleInit(GFX_BOTTOM, &debugBox);
 				consoleSelect(&bottomScreen); consoleClear();
 				std::cout << ANSI B_BLUE CEND;
@@ -845,17 +849,17 @@ int main(int argc, char **argv)
 				bool ready_exit = false;
 				while (!ready_exit) {
 					hidScanInput();
-					kDown = hidKeysDown();*/
+					kDown = hidKeysDown();
 					/*pp2d_begin_draw(GFX_TOP, GFX_LEFT);
 					pp2d_draw_texture(0, 400, 240);
 					pp2d_end_draw();*/
-					/*if (kDown & (KEY_A | KEY_B | KEY_Y | KEY_X | KEY_L | KEY_R | KEY_ZL | KEY_ZR | KEY_SELECT | KEY_START | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
+					if (kDown & (KEY_A | KEY_B | KEY_Y | KEY_X | KEY_L | KEY_R | KEY_ZL | KEY_ZR | KEY_SELECT | KEY_START | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
 						ready_exit = true;
 
-					hidTouchRead(&touch);*/
+					hidTouchRead(&touch);
 
 					/*exit game if red box touched*/
-					/*if (touchInBox(touch, 0, 224, 320, 16)) {
+					if (touchInBox(touch, 0, 224, 320, 16)) {
 						std::cout << "Exiting...\n";
 						ready_exit = true;
 					}
@@ -866,7 +870,7 @@ int main(int argc, char **argv)
 			paused_level = "top";
 			paused_selection = 0;
 			bottom_screen_text = 0;
-		}*/
+		}
 		if (bottom_screen_text == 0) {
 			consoleSelect(&killBox); consoleClear();
 			consoleSelect(&versionWin); consoleClear();
@@ -896,7 +900,7 @@ int main(int argc, char **argv)
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(top, C2D_Color32f(0.6f, 0.6f, 0.6f, 1.0f));
 		C2D_SceneBegin(top);
-		draw_texture(sprites_title_idx , 0, 0);
+		draw_texture(titleID , 0, 0);
 		//draw_texture(wall_connector_lID, 0, 0);
 		C3D_FrameEnd(0);
 
@@ -922,7 +926,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-/*int paused_action(int action) {
+int paused_action(int action) {
 	if (paused_level == "top") {
 		if (action == 3) {
 			return 1;
@@ -946,11 +950,10 @@ void paused_return_level() {
 		paused = false;
 		paused_selection = 0;
 	}
-}*/
+}
 
 int game() {
-	/*int ret_val = 0;
-	//pp2d_begin_draw(GFX_TOP, GFX_LEFT);
+	int ret_val = 0;
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	C2D_TargetClear(top, C2D_Color32f(0.0f, 0.0f, 0.0f, 1.0f));
 	C2D_SceneBegin(top);
@@ -1059,13 +1062,12 @@ int game() {
 		draw_texture(xnx[second], 7 * 50, (3 * 50) + 40);
 		draw_texture(xxn[third], 7 * 50, (3 * 50) + 40);
 	}
-	//pp2d_end_draw();
 	C3D_FrameEnd(0);
 
-	hidTouchRead(&touch);*/
+	hidTouchRead(&touch);
 
 	/*exit game if red box touched*/
-	/*if (touchInBox(touch, 0, 224, 320, 16)) {
+	if (touchInBox(touch, 0, 224, 320, 16)) {
 		std::cout << "Exiting...\n";
 		return 2;
 	}
@@ -1372,6 +1374,5 @@ int game() {
 	if (player1.lives <= 0)
 		return 1;
 
-	return ret_val;*/
-return 0;
+	return ret_val;
 }
