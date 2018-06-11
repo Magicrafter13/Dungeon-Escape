@@ -1,8 +1,40 @@
 #pragma once
-#include "DungeonEscape.hpp"
 
-#ifndef level_h
-#define level_h
+/// Room items
+enum room_items {
+	WALL = 0,
+	EMPTY = 1,
+	COINS = 2,
+	KILL = 3,
+	WAY1INL = 4, WAY1INR = 5, WAY1INU = 6, WAY1IND = 7,
+	WAY1OUTL = 8, WAY1OUTR = 9, WAY1OUTU = 10, WAY1OUTD = 11,
+	WALL_L = 12, WALL_R = 13, WALL_U = 14, WALL_D = 15,
+	START = 16,
+	SMALL_RIGHT = 17, SMALL_LEFT = 18, SMALL_UP = 19, SMALL_DOWN = 20,
+	CRAWL_LR = 21, CRAWL_UD = 22, // - |
+	CRAWL_LU = 23, CRAWL_LD = 24, // -^ -.
+	CRAWL_RU = 25, CRAWL_RD = 26, // ^- .-
+	CRAWL_T_D = 27, CRAWL_T_U = 28, CRAWL_T_L = 29, CRAWL_T_R = 30, //This means Up Right and Down (middle is right)
+	CRAWL_4 = 31, // +
+	LOCK_L = 32, LOCK_R = 33, LOCK_U = 34, LOCK_D = 35,
+	PRESSURE_PLATE = 36,
+	UNLOCK_L = 37, UNLOCK_R = 38, UNLOCK_U = 39, UNLOCK_D = 40,
+	TELEPORT = 41, NULL_TELEPORT = 42,
+	FORCE_U = 43, FORCE_D = 44, FORCE_L = 45, FORCE_R = 46,
+	EXIT = 47, POWERUP = 48, HIDDEN = 49,
+	SPIKES = 50, CHEST = 51,
+	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55
+};
+
+/// Powerups
+enum powerup_enum {
+	TINY = 0,
+	CROUCH = 1,
+	//COINS already defined as 2
+	KEY = 3,
+	LIFE = 4
+};
+
 class room {
 	std::vector<int> dobjects;
 	std::vector<int> dbefore_activation, dafter_activation;
@@ -18,13 +50,69 @@ public:
 	int powerup[2];
 	bool activates_multiple;
 	std::vector<int> rooms_activated;
-	room(std::vector<int>);
-	room(std::vector<int>, int);
-	room(std::vector<int>, std::vector<int>, bool);
-	room(std::vector<int>, int[2]);
-	room(std::vector<int>, std::vector<int>);
-	room(std::vector<int>, std::vector<int>, bool, std::vector<int>);
-	room(std::vector<int>, std::vector<int>, int[2], bool);
+	room(std::vector<int> fobjects) {
+		objects = fobjects;
+		dobjects = fobjects;
+	}
+	room(std::vector<int> fobjects, int linked) {
+		objects = fobjects;
+		dobjects = fobjects;
+		if (std::find(objects.begin(), objects.end(), TELEPORT) != objects.end()) {
+			teleport_to = linked;
+		}
+		if (std::find(objects.begin(), objects.end(), PRESSURE_PLATE) != objects.end()) {
+			activates_room = linked;
+		}
+	}
+	room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa) {
+		objects = fobjects_b;
+		dobjects = fobjects_b;
+		before_activation = fobjects_b;
+		dbefore_activation = fobjects_b;
+		after_activation = fobjects_a;
+		dafter_activation = fobjects_a;
+		has_before_and_after = hbaa;
+		activates_multiple = false;
+	}
+	room(std::vector<int> fobjects, int powerups[2]) {
+		objects = fobjects;
+		dobjects = fobjects;
+		powerup[0] = powerups[0];
+		dpowerup[0] = powerups[0];
+		powerup[1] = powerups[1];
+		dpowerup[1] = powerups[1];
+	}
+	room(std::vector<int> fobjects, std::vector<int> rooms_to_activate) {
+		activates_multiple = true;
+		rooms_activated = rooms_to_activate;
+		objects = fobjects;
+		dobjects = fobjects;
+	}
+	room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa, std::vector<int> rooms_to_activate) {
+		objects = fobjects_b;
+		dobjects = fobjects_b;
+		before_activation = fobjects_b;
+		dbefore_activation = fobjects_b;
+		after_activation = fobjects_a;
+		dafter_activation = fobjects_a;
+		has_before_and_after = hbaa;
+		activates_multiple = true;
+		rooms_activated = rooms_to_activate;
+	}
+	room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, int powerups[2], bool hbaa) {
+		objects = fobjects_b;
+		dobjects = fobjects_b;
+		before_activation = fobjects_b;
+		dbefore_activation = fobjects_b;
+		after_activation = fobjects_a;
+		dafter_activation = fobjects_a;
+		has_before_and_after = hbaa;
+		activates_multiple = false;
+		powerup[0] = powerups[0];
+		dpowerup[0] = powerups[0];
+		powerup[1] = powerups[1];
+		dpowerup[1] = powerups[1];
+	}
 	void reset() {
 		objects = dobjects;
 		before_activation = dbefore_activation;
@@ -89,9 +177,11 @@ public:
 	int width;
 	int height;
 	std::vector<room> rooms;
-	level(int, int, std::vector<room>);
+	level(int fwidth, int fheight, std::vector<room> fdata) {
+		width = fwidth;
+		height = fheight;
+		rooms = fdata;
+	}
 };
 
 extern level getLevel(int chapter, int lvl);
-
-#endif

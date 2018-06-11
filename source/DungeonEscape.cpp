@@ -1,8 +1,4 @@
 #include "DungeonEscape.hpp"
-
-class room;
-class level;
-
 #include "levels.hpp"
 
 #define MAX_SPRITES   88
@@ -38,6 +34,18 @@ std::string debug_log = "Debugger started:\n";
 bool error = false, debug = false, update_debug_screen = true;
 
 int game();
+
+/*class level_set {
+public:
+int level_count;
+std::vector<level> levels;
+level_set(int, std::vector<level>);
+};
+
+level_set::level_set(int lvl_count, std::vector<level> lvls) {
+level_count = lvl_count;
+levels = lvls;
+}*/
 
 size_t
 wallID,
