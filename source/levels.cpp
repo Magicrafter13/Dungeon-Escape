@@ -91,7 +91,7 @@ level getLevel(int chapter, int lvl) {
 			});
 			break;
 		case 1:
-			return_data = level(9, 9, {
+			/*return_data = level(9, 9, {
 			room({ START, WALL_U, WALL_L, WALL_D }),
 			room({ EMPTY, WALL_U, SMALL_DOWN, SMALL_RIGHT }),
 			room({ EMPTY, CRAWL_LR }),
@@ -173,9 +173,173 @@ level getLevel(int chapter, int lvl) {
 			room({ WALL_L, WALL_D, WALL_R, HIDDEN, POWERUP }, new int[2]{ TINY, 3 }),
 			room({ WALL }),
 			room({ WALL }) //row 9
-			});
+			});*/
+			return_data = level(8, 10, {
+				room({ WALL }),
+				room({ WALL }),
+				room({ START, WALL_L, WALL_U, WALL_R }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 1
+				room({ WALL }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 2
+				room({ EMPTY, WALL_L, WALL_U }),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ EMPTY, SMALL_RIGHT }),
+				room({ EMPTY, CRAWL_LR }),
+				room({ EMPTY, CRAWL_LD }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 3
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, SMALL_UP, WALL_D }),
+				room({ EMPTY, WALL_U, LOCK_R, SMALL_DOWN },{ EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN }, false),
+				room({ EXIT, WALL_U, WALL_D, WALL_R }),
+				room({ WALL }), //row 4
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_D },{ EMPTY, WALL_L }, true),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ TELEPORT, WALL_U, WALL_R, WALL_D }, 49),
+				room({ EMPTY, CRAWL_UD }),
+				room({ WALL }),
+				room({ WALL }), //row 5
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL },{ EMPTY, WALL_U, WALL_L, WALL_D }, true),
+				room({ WALL },{ EMPTY, WALL_R, WALL_D }, true), //room 43 (42 + 1)
+				room({ WALL_U, WALL_L, PRESSURE_PLATE },{ 34, 41, 42 }),
+				room({ EMPTY, WALL_U, WALL_D, SMALL_RIGHT }),
+				room({ CRAWL_LU, PRESSURE_PLATE }, 29),
+				room({ WALL }),
+				room({ WALL }), //row 6
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL_U, WALL_L, WALL_D, TELEPORT }, 36),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ EMPTY, WALL_R, WALL_D }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL_U, WALL_L, WALL_R, FORCE_D }), //row 7
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ TELEPORT, WALL_L, WALL_U, WALL_R }, 55),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ PRESSURE_PLATE, WALL_L, WALL_R },{ 64, 65, 66 }), //row 8
+				room({ EMPTY, WALL_L, WALL_D },{ EMPTY, WALL_L, WALL_D, WALL_R }, true),
+				room({ EMPTY, WALL_U, WALL_D },{ EMPTY, WALL }, true),
+				room({ EMPTY },{ EMPTY, WALL_L }, true),
+				room({ HIDDEN, KILL, WALL_U, WALL_R, WALL_D }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ TELEPORT, WALL_L, WALL_D, WALL_R }, 10), //row 9
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL_L, WALL_D, WALL_R, POWERUP }, new int[2]{ TINY, 3 }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }) //row 10
+				});
 			break;
 		case 2:
+			/*return_data = level(8, 10, {
+				room({ WALL }),
+				room({ WALL }),
+				room({ START, WALL_L, WALL_U, WALL_R }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 1
+				room({ WALL }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 2
+				room({ EMPTY, WALL_L, WALL_U }),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ EMPTY, SMALL_RIGHT }),
+				room({ EMPTY, CRAWL_LR }),
+				room({ EMPTY, CRAWL_LD }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }), //row 3
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, SMALL_UP, WALL_D }),
+				room({ EMPTY, WALL_U, LOCK_R, SMALL_DOWN },{ EMPTY, WALL_U, UNLOCK_R, SMALL_DOWN }, false),
+				room({ EXIT, WALL_U, WALL_D, WALL_R }),
+				room({ WALL }), //row 4
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ EMPTY, WALL_L, WALL_D },{ EMPTY, WALL_L }, true),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ TELEPORT, WALL_U, WALL_R, WALL_D }, 49),
+				room({ EMPTY, CRAWL_UD }),
+				room({ WALL }),
+				room({ WALL }), //row 5
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL },{ EMPTY, WALL_U, WALL_L, WALL_D }, true),
+				room({ WALL },{ EMPTY, WALL_R, WALL_D }, true), //room 43 (42 + 1)
+				room({ WALL_U, WALL_L, PRESSURE_PLATE },{ 34, 41, 42 }),
+				room({ EMPTY, WALL_U, WALL_D, SMALL_RIGHT }),
+				room({ CRAWL_LU, PRESSURE_PLATE }, 29),
+				room({ WALL }),
+				room({ WALL }), //row 6
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL_U, WALL_L, WALL_D, TELEPORT }, 36),
+				room({ EMPTY, WALL_U, WALL_D }),
+				room({ EMPTY, WALL_R, WALL_D }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL_U, WALL_L, WALL_R, FORCE_D }), //row 7
+				room({ EMPTY, WALL_L, WALL_R }),
+				room({ WALL }),
+				room({ TELEPORT, WALL_L, WALL_U, WALL_R }, 55),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ PRESSURE_PLATE, WALL_L, WALL_R },{ 64, 65, 66 }), //row 8
+				room({ EMPTY, WALL_L, WALL_D },{ EMPTY, WALL_L, WALL_D, WALL_R }, true),
+				room({ EMPTY, WALL_U, WALL_D },{ EMPTY, WALL }, true),
+				room({ EMPTY },{ EMPTY, WALL_L }, true),
+				room({ HIDDEN, KILL, WALL_U, WALL_R, WALL_D }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ TELEPORT, WALL_L, WALL_D, WALL_R }, 10), //row 9
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL_L, WALL_D, WALL_R, POWERUP }, new int[2]{ TINY, 3 }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }),
+				room({ WALL }) //row 10
+				});*/
 			return_data = level(8, 10, {
 				room({ WALL }),
 				room({ WALL }),

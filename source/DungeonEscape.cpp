@@ -891,11 +891,25 @@ int game() {
 		}
 		curRoom = &current_level.rooms[player1.location];
 		if (curRoom->hasObject(PRESSURE_PLATE)) {
-			if (curRoom->activates_multiple)
+			if (curRoom->activates_multiple) {
+				for (unsigned int i = 0; i < current_level.rooms[curRoom->rooms_activated[i]].objects.size(); i++)
+					debug_log += current_level.rooms[curRoom->rooms_activated[i]].objects[i] + " ";
+				debug_log += "\n";
 				for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++)
 					current_level.rooms[curRoom->rooms_activated[i]].activate();
-			else
+				for (unsigned int i = 0; i < current_level.rooms[curRoom->rooms_activated[i]].objects.size(); i++)
+					debug_log += current_level.rooms[curRoom->rooms_activated[i]].objects[i] + " ";
+				debug_log += "\n";
+			}
+			else {
+				for (unsigned int i = 0; i < current_level.rooms[curRoom->activates_room].objects.size(); i++)
+					debug_log += current_level.rooms[curRoom->activates_room].objects[i] + " ";
+				debug_log += "\n";
 				current_level.rooms[curRoom->activates_room].activate();
+				for (unsigned int i = 0; i < current_level.rooms[curRoom->activates_room].objects.size(); i++)
+					debug_log += current_level.rooms[curRoom->activates_room].objects[i] + " ";
+				debug_log += "\n";
+			}
 		}
 		if (curRoom->hasObject(POWERUP)) {
 			player1.addInventory(curRoom->powerup);
