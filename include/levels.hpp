@@ -62,6 +62,7 @@ public:
 		}
 		if (std::find(objects.begin(), objects.end(), PRESSURE_PLATE) != objects.end()) {
 			activates_room = linked;
+			activates_multiple = false;
 		}
 	}
 	room(std::vector<int> fobjects_b, std::vector<int> fobjects_a, bool hbaa) {
@@ -139,19 +140,16 @@ public:
 	}
 	void activate() {
 		if (has_before_and_after) {
-			if (current_object_set == "before") {
-				current_object_set = "after";
+			if (current_object_set == "before")
 				objects = after_activation;
-			}
-			else if (current_object_set == "after") {
-				current_object_set = "before";
+			else if (current_object_set == "after")
 				objects = before_activation;
-			}
 			else {
 				error_code = "rm_chng_obj-set";
 				error_message = "Could not determine which object\nset the room needed.";
 				error = true;
 			}
+			current_object_set = (current_object_set == "before" ? "after" : "before");
 		}
 		else {
 			if (current_object_set == "before") {
