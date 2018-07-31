@@ -11,9 +11,10 @@ std::string buildnumber = "18.06.17.1640";
 std::string current_state = "main_menu";
 
 static C2D_SpriteSheet spriteSheet;
+static C2D_SpriteSheet uiSpriteSheet;
 
-void draw_texture(size_t id, float x, float y) {
-	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spriteSheet, id), x, y, 1.0f, NULL, 1.0f, 1.0f);
+void draw_texture(size_t id, float x, float y, bool is_ui_element) {
+	C2D_DrawImageAt(C2D_SpriteSheetGetImage((is_ui_element ? uiSpriteSheet : spriteSheet), id), x, y, 1.0f, NULL, 1.0f, 1.0f);
 }
 
 FILE *debug_file;
@@ -56,7 +57,8 @@ pressure_plateID,
 teleportID, null_teleportID,
 force_uID, force_dID, force_lID, force_rID,
 exitID, powerupID, hiddenID, playerID,
-pause_scr, ps_0, ps_1, ps_2, ps_3, titleID, inventoryID, inventory_selectedID,
+titleID, inventoryID, inventory_selectedID,
+pause_scr, pause_cursor,
 error_50x50, emptyID, floorID,
 small_invID, none_leftID, counterID, player_smallID, endID,
 spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID;
@@ -81,15 +83,20 @@ void init_textures() {
 	teleportID = sprites_teleport_idx; null_teleportID = sprites_teleport_idx;
 	force_uID = 0; force_dID = 0; force_lID = 0; force_rID = 0;
 	exitID = sprites_end_idx; powerupID = sprites_temp_powerup_idx; hiddenID = sprites_black_80x80_idx; playerID = sprites_player_idx;
-	pause_scr = sprites_temp_pausescreen_idx; ps_0 = sprites_temp_pausescreen_text_0_idx; ps_1 = sprites_temp_pausescreen_text_1_idx; ps_2 = sprites_temp_pausescreen_text_2_idx; ps_3 = sprites_temp_pausescreen_text_3_idx; titleID = sprites_title_idx; inventoryID = sprites_inventory_idx; inventory_selectedID = sprites_inventory_selector_idx;
-	error_50x50 = sprites_error_50x50_idx; emptyID = sprites_empty_idx; floorID = sprites_floor_idx;
-	small_invID = sprites_small_inv_idx; none_leftID = sprites_none_left_idx; counterID = sprites_counter_idx; player_smallID = sprites_player_tiny_idx; endID = sprites_exit_idx;
+	titleID = ui_title_idx; inventoryID = ui_inventory_idx; inventory_selectedID = ui_inventory_selector_idx;
+	pause_scr = ui_pausescreen_idx; pause_cursor = ui_cursor_idx;
+	error_50x50 = ui_error_50x50_idx; emptyID = ui_empty_idx; floorID = sprites_floor_idx;
+	small_invID = ui_small_inv_idx; none_leftID = ui_none_left_idx; counterID = ui_counter_idx; player_smallID = sprites_player_tiny_idx; endID = ui_exit_idx;
 	spike_wall_lID = sprites_spike_wall_l_idx; spike_wall_rID = sprites_spike_wall_r_idx; spike_wall_uID = sprites_spike_wall_u_idx; spike_wall_dID = sprites_spike_wall_d_idx;
-	ps_arrow[0] = sprites_temp_pausescreen_arrow_0_idx; ps_arrow[1] = sprites_temp_pausescreen_arrow_1_idx; ps_arrow[2] = sprites_temp_pausescreen_arrow_2_idx; ps_arrow[3] = sprites_temp_pausescreen_arrow_3_idx;
-	nxx[0] = sprites_0xx_idx; nxx[1] = sprites_1xx_idx; nxx[2] = sprites_2xx_idx; nxx[3] = sprites_3xx_idx; nxx[4] = sprites_4xx_idx; nxx[5] = sprites_5xx_idx; nxx[6] = sprites_6xx_idx; nxx[7] = sprites_7xx_idx; nxx[8] = sprites_8xx_idx; nxx[9] = sprites_9xx_idx;
-	xnx[0] = sprites_x0x_idx; xnx[1] = sprites_x1x_idx; xnx[2] = sprites_x2x_idx; xnx[3] = sprites_x3x_idx; xnx[4] = sprites_x4x_idx; xnx[5] = sprites_x5x_idx; xnx[6] = sprites_x6x_idx; xnx[7] = sprites_x7x_idx; xnx[8] = sprites_x8x_idx; xnx[9] = sprites_x9x_idx;
-	xxn[0] = sprites_xx0_idx; xxn[1] = sprites_xx1_idx; xxn[2] = sprites_xx2_idx; xxn[3] = sprites_xx3_idx; xxn[4] = sprites_xx4_idx; xxn[5] = sprites_xx5_idx; xxn[6] = sprites_xx6_idx; xxn[7] = sprites_xx7_idx; xxn[8] = sprites_xx8_idx; xxn[9] = sprites_xx9_idx;
+	nxx[0] = ui_0xx_idx; nxx[1] = ui_1xx_idx; nxx[2] = ui_2xx_idx; nxx[3] = ui_3xx_idx; nxx[4] = ui_4xx_idx; nxx[5] = ui_5xx_idx; nxx[6] = ui_6xx_idx; nxx[7] = ui_7xx_idx; nxx[8] = ui_8xx_idx; nxx[9] = ui_9xx_idx;
+	xnx[0] = ui_x0x_idx; xnx[1] = ui_x1x_idx; xnx[2] = ui_x2x_idx; xnx[3] = ui_x3x_idx; xnx[4] = ui_x4x_idx; xnx[5] = ui_x5x_idx; xnx[6] = ui_x6x_idx; xnx[7] = ui_x7x_idx; xnx[8] = ui_x8x_idx; xnx[9] = ui_x9x_idx;
+	xxn[0] = ui_xx0_idx; xxn[1] = ui_xx1_idx; xxn[2] = ui_xx2_idx; xxn[3] = ui_xx3_idx; xxn[4] = ui_xx4_idx; xxn[5] = ui_xx5_idx; xxn[6] = ui_xx6_idx; xxn[7] = ui_xx7_idx; xxn[8] = ui_xx8_idx; xxn[9] = ui_xx9_idx;
 }
+
+int pause_arrow[2][4] = {
+	{60, 60, 49, 63},
+	{48, 93, 138, 183}
+};
 
 size_t getTexID(room_items item) {
 	switch (item) {
@@ -367,7 +374,9 @@ int main(int argc, char **argv)
 	if (!debug) bot = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	// Load graphics
 	spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
+	uiSpriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/ui.t3x");
 	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
+	if (!uiSpriteSheet) svcBreak(USERBREAK_PANIC);
 
 	init_textures();
 
@@ -444,11 +453,11 @@ int main(int argc, char **argv)
 			C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, C2D_Color32f(0.6f, 0.6f, 0.6f, 1.0f));
 			C2D_SceneBegin(top);
-			draw_texture(titleID, 0, 0);
+			draw_texture(titleID, 0, 0, true);
 			if (!debug) {
 				C2D_TargetClear(bot, C2D_Color32f(0.0f, 0.0f, 0.0f, 1.0f));
 				C2D_SceneBegin(bot);
-				draw_texture(endID, 0, 224);
+				draw_texture(endID, 0, 224, true);
 			}
 			C3D_FrameEnd(0);
 
@@ -471,7 +480,7 @@ int main(int argc, char **argv)
 					int rel_x = 2 - (player1.x - x);
 					int rel_y = 1 - (player1.y - y);
 					if (rel_x >= 0 && rel_y >= 0 && rel_x <= current_level.width && rel_y <= current_level.height && !current_level.rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
-						draw_texture(floorID, 80 * rel_x, 80 * rel_y);
+						draw_texture(floorID, 80 * rel_x, 80 * rel_y, false);
 					if (!player1.hidden_map[tRoom]) {
 						std::vector<room_items> item_arr{
 							WALL_L, WALL_R, WALL_U, WALL_D, WALL,
@@ -485,39 +494,39 @@ int main(int argc, char **argv)
 						};
 						for (unsigned int i = 0; i < item_arr.size(); i++) {
 							if (current_level.rooms[tRoom].hasObject(item_arr[i]))
-								draw_texture(getTexID(item_arr[i]), rel_x * 80, rel_y * 80);
+								draw_texture(getTexID(item_arr[i]), rel_x * 80, rel_y * 80, false);
 						}
 						if (current_level.rooms[tRoom].hasObject(LOCK_L)) {
-							draw_texture(lock_lID, 80 * rel_x, 80 * rel_y);
-							draw_texture(lock_rID, 80 * (rel_x - 1), 80 * rel_y);
+							draw_texture(lock_lID, 80 * rel_x, 80 * rel_y, false);
+							draw_texture(lock_rID, 80 * (rel_x - 1), 80 * rel_y, false);
 						}
 						if (current_level.rooms[tRoom].hasObject(LOCK_R)) {
-							draw_texture(lock_rID, 80 * rel_x, 80 * rel_y);
-							draw_texture(lock_lID, 80 * (rel_x + 1), 80 * rel_y);
+							draw_texture(lock_rID, 80 * rel_x, 80 * rel_y, false);
+							draw_texture(lock_lID, 80 * (rel_x + 1), 80 * rel_y, false);
 						}
 						if (current_level.rooms[tRoom].hasObject(LOCK_U)) {
-							draw_texture(lock_uID, 80 * rel_x, 80 * rel_y);
-							draw_texture(lock_dID, 80 * rel_x, 80 * (rel_y - 1));
+							draw_texture(lock_uID, 80 * rel_x, 80 * rel_y, false);
+							draw_texture(lock_dID, 80 * rel_x, 80 * (rel_y - 1), false);
 						}
 						if (current_level.rooms[tRoom].hasObject(LOCK_D)) {
-							draw_texture(lock_dID, 80 * rel_x, 80 * rel_y);
-							draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1));
+							draw_texture(lock_dID, 80 * rel_x, 80 * rel_y, false);
+							draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1), false);
 						}
 					}
 					if (current_level.rooms[tRoom].hasObject(WALL_L) && tRoom - current_level.width >= 0)
 						if (current_level.rooms[tRoom - current_level.width].hasObject(WALL_L))
-							draw_texture(wall_connector_lID, (rel_x * 80), ((rel_y * 80) - 10));
+							draw_texture(wall_connector_lID, (rel_x * 80), ((rel_y * 80) - 10), false);
 					if (current_level.rooms[tRoom].hasObject(WALL_R) && tRoom - current_level.width >= 0)
 						if (current_level.rooms[tRoom - current_level.width].hasObject(WALL_R))
-							draw_texture(wall_connector_rID, ((rel_x * 80) + 65), ((rel_y * 80) - 10));
+							draw_texture(wall_connector_rID, ((rel_x * 80) + 65), ((rel_y * 80) - 10), false);
 					if (current_level.rooms[tRoom].hasObject(WALL_U) && tRoom - 1 >= 0)
 						if (current_level.rooms[tRoom - 1].hasObject(WALL_U))
-							draw_texture(wall_connector_uID, ((rel_x * 80) - 10), (rel_y * 80));
+							draw_texture(wall_connector_uID, ((rel_x * 80) - 10), (rel_y * 80), false);
 					if (current_level.rooms[tRoom].hasObject(WALL_D) && tRoom - 1 >= 0)
 						if (current_level.rooms[tRoom - 1].hasObject(WALL_D))
-							draw_texture(wall_connector_dID, ((rel_x * 80) - 10), ((rel_y * 80) + 65));
+							draw_texture(wall_connector_dID, ((rel_x * 80) - 10), ((rel_y * 80) + 65), false);
 					if (current_level.rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
-						draw_texture(wallID, 80 * rel_x, 80 * rel_y);
+						draw_texture(wallID, 80 * rel_x, 80 * rel_y, false);
 					tRoom++;
 				}
 			}
@@ -527,35 +536,34 @@ int main(int argc, char **argv)
 					int rel_x = 2 - (player1.x - x);
 					int rel_y = 1 - (player1.y - y);
 					if (player1.hidden_map[tRoom])
-						draw_texture(hiddenID, 80 * rel_x, 80 * rel_y);
+						draw_texture(hiddenID, 80 * rel_x, 80 * rel_y, false);
 					tRoom++;
 				}
 			}
-			draw_texture((player1.is_tiny ? player_smallID : playerID), 2 * 80, 1 * 80);
+			draw_texture((player1.is_tiny ? player_smallID : playerID), 2 * 80, 1 * 80, false);
 			if (paused) {
-				draw_texture(pause_scr, 0, 0);
-				draw_texture(ps_0, 99, 0);
-				draw_texture(ps_1, 99, 0);
-				draw_texture(ps_2, 99, 0);
-				draw_texture(ps_3, 99, 0);
-				draw_texture(ps_arrow[paused_selection], 99, 0);
+				if (kHeld & KEY_X)
+					draw_texture(ui_asdf_idx, 100, 0, true);
+				else
+					draw_texture(pause_scr, 100, 0, true);
+				draw_texture(pause_cursor, pause_arrow[0][paused_selection] + 100, pause_arrow[1][paused_selection], true);
 			}
 			if (inventory) {
-				draw_texture(inventoryID, 0, 0);
+				draw_texture(inventoryID, 0, 0, true);
 				int selector = 0;
 				for (int y = 0; y < 4; y++) {
 					for (int x = 0; x < 8; x++) {
-						draw_texture(inventoryItem(selector), x * 50, (y * 50) + 40);
+						draw_texture(inventoryItem(selector), x * 50, (y * 50) + 40, true);
 						if (selector == inventory_selection)
-							draw_texture(inventory_selectedID, x * 50, (y * 50) + 40);
+							draw_texture(inventory_selectedID, x * 50, (y * 50) + 40, true);
 						if (player1.inventory[selector] == 0)
 							if (selector < 2)
-								draw_texture(none_leftID, x * 50, (y * 50) + 40);
+								draw_texture(none_leftID, x * 50, (y * 50) + 40, true);
 						selector++;
 					}
 				}
-				draw_texture(inventoryItem(inventory_selection), 6 * 50, (3 * 50) + 40);
-				draw_texture(counterID, 7 * 50, (3 * 50) + 40);
+				draw_texture(inventoryItem(inventory_selection), 6 * 50, (3 * 50) + 40, true);
+				draw_texture(counterID, 7 * 50, (3 * 50) + 40, true);
 				std::string temp_numbers = "";
 				if (player1.inventory[inventory_selection] < 100)
 					temp_numbers += "0";
@@ -565,9 +573,9 @@ int main(int argc, char **argv)
 				int first = temp_numbers.at(0) - '0';
 				int second = temp_numbers.at(1) - '0';
 				int third = temp_numbers.at(2) - '0';
-				draw_texture(nxx[first], 7 * 50, (3 * 50) + 40);
-				draw_texture(xnx[second], 7 * 50, (3 * 50) + 40);
-				draw_texture(xxn[third], 7 * 50, (3 * 50) + 40);
+				draw_texture(nxx[first], 7 * 50, (3 * 50) + 40, true);
+				draw_texture(xnx[second], 7 * 50, (3 * 50) + 40, true);
+				draw_texture(xxn[third], 7 * 50, (3 * 50) + 40, true);
 			}
 			if (!debug) {
 				//draw to bottom screen
@@ -585,6 +593,7 @@ int main(int argc, char **argv)
 
 			hidScanInput();
 			kDown = hidKeysDown();
+			kHeld = hidKeysHeld();
 
 			bool triggerKill = false;
 

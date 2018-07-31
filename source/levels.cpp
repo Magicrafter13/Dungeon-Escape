@@ -246,6 +246,111 @@ level getLevel(int chapter, int lvl) {
 				room({ WALL }) //row 10
 			};
 			break;
+		case 3:
+			return_data.width = 9;
+			return_data.height = 11;
+			return_data.rooms = {
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}), //row 0
+				room({WALL}),
+				room({WALL_U, WALL_L, WALL_D, START, WAY1INR}),
+				room({WALL_U, WAY1OUTL, WAY1INR, EMPTY}),
+				room({WAY1OUTL, WALL_U, WALL_D, EMPTY}, {WAY1INL, WALL_U, WALL_D, EMPTY, WALL_R}, true),
+				room({WALL_U, EMPTY, WAY1INR}, {WALL_U, WALL_L, WALL_D, EMPTY, WAY1INR}, true),
+				room({WALL_U, EMPTY, WALL_R, WAY1OUTL, WAY1IND}),
+				room({WALL_U, WALL_L, SPIKE_WALL_R, SPIKE_WALL_D, NULL_TELEPORT}),
+				room({SPIKE_WALL_L, SPIKE_WALL_D, WALL_U, WALL_R, NULL_TELEPORT}),
+				room({WALL}), //row 1
+				room({WALL}),
+				room({HIDDEN, WALL_L, WALL_U, WALL_D, WAY1INR, TELEPORT}, 66),
+				room({WAY1OUTL, WAY1OUTD, WALL_R, EMPTY}),
+				room({WALL_L, WALL_U, HIDDEN, WALL_R, WAY1IND, POWERUP}, new int[2]{COINS, 10}),
+				room({WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1OUTR}, {WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1OUTR, WALL_U}, true),
+				room({WAY1INL, WAY1OUTU, WALL_R, WALL_D, EMPTY}),
+				room({WALL_L, WALL_D, SPIKE_WALL_U, SPIKE_WALL_R, NULL_TELEPORT}),
+				room({WALL_D, WALL_R, SPIKE_WALL_L, SPIKE_WALL_U, NULL_TELEPORT}),
+				room({WALL}), //row 2
+				room({WALL}),
+				room({HIDDEN, WALL_L, WALL_U, WALL_D, TELEPORT, WAY1INR}, 15),
+				room({EMPTY, WAY1OUTL, WAY1OUTR, WAY1INU, WAY1IND}),
+				room({EMPTY, WAY1INL, WAY1OUTR, WAY1OUTU}),
+				room({HIDDEN, WAY1INL, WAY1OUTR, WALL_U, WALL_D, POWERUP}, new int[2]{TINY, 3}),
+				room({EMPTY, WAY1INL, WALL_R, WALL_U}),
+				room({TELEPORT, WALL_L, WALL_R, WALL_U, WAY1IND}, 25),
+				room({WALL}),
+				room({WALL}), //row 3
+				room({WALL}),
+				room({HIDDEN, WALL_L, WAY1INR, WALL_U, WAY1OUTD}), //originally had a "Monster Fight"
+				room({EMPTY, WAY1OUTL, WALL_R, WAY1OUTU}),
+				room({EMPTY, WALL_L, WALL_D}),
+				room({EMPTY, WALL_U}),
+				room({EMPTY, WALL_R, WALL_D}, {EMPTY, WALL_R}, true),
+				room({EMPTY, WALL_L, WAY1OUTU}, {EMPTY, WAY1OUTU}, true),
+				room({EMPTY, WALL_R, SPIKE_WALL_U}),
+				room({WALL}), //row 4
+				room({WALL}),
+				room({HIDDEN, POWERUP, WALL_L, WALL_R, WAY1INU, WAY1OUTD}, new int[2]{LIFE, 1}),
+				room({PRESSURE_PLATE, WALL_L, WALL_D}), //originally this pressure plate was labeled as 'secret', but uh... if there was a secret, I forgot what it was years ago. I'll put it here anyway to fuck with the players mind :p
+				room({EMPTY, WALL_R, WALL_U, WAY1OUTD}),
+				room({EMPTY, WALL_L}),
+				room({HIDDEN, PRESSURE_PLATE, WALL_R, WALL_U, WALL_D}, {41, 42}),
+				room({HIDDEN, TELEPORT, WALL_L, WALL_R, WALL_U}, 16),
+				room({EMPTY, WALL_L, WALL_R}),
+				room({WALL}), //row 5
+				room({WALL}),
+				room({EMPTY, WALL_L, WAY1OUTU, WALL_D}),
+				room({EMPTY, WALL_U, SPIKE_WALL_D}),
+				room({EMPTY, WAY1INU, WALL_D}),
+				room({EMPTY, WALL_R, WAY1OUTD}),
+				room({EMPTY, WALL_L, WALL_U}),
+				room({EMPTY}),
+				room({EMPTY, WALL_R, WALL_D}),
+				room({WALL}), //row 6
+				room({WALL}),
+				room({EXIT, WALL_L, WALL_R, WALL_U, WALL_D}, {EXIT, WALL_L, WALL_R, WALL_U}, false),
+				room({WALL}),
+				room({HIDDEN, NULL_TELEPORT, WALL_L, WAY1INR, WALL_U, WALL_D}),
+				room({HIDDEN, POWERUP, WAY1OUTL, WALL_R, WAY1INU, WALL_D}, new int[2]{LIFE, 1}),
+				room({HIDDEN, WALL_L, WALL_R}), //also originally had a monster fight
+				room({HIDDEN, POWERUP, WALL_L, WALL_R, WALL_D}, new int[2]{COINS, 2}),
+				room({TELEPORT, WALL_L, WALL_R, WALL_U}, 24),
+				room({WALL}), //row 7
+				room({WALL}),
+				room({EMPTY, WALL_L, WALL_U, WAY1OUTD}, {EMPTY, WALL_L, WAY1OUTD}, false), //originally had a "retry clock" based off of the retry clock from Mario & Luigi: Bowser's Inside Story, it functioned the same way
+				room({PRESSURE_PLATE, WALL_R, WALL_U, WALL_D}, {64, 73}), //originally had a boss fight, but now it's just a pressure_plate :/
+				room({EMPTY, WALL_L, WAY1OUTR, WALL_U, WAY1IND}),
+				room({EMPTY, WAY1INL, WALL_U}),
+				room({EMPTY, WAY1IND}),
+				room({EMPTY, WAY1INR, WALL_U, WAY1IND}),
+				room({HIDDEN, EMPTY, WAY1OUTL, WALL_R, WALL_D}),
+				room({WALL}), //row 8
+				room({WALL}),
+				room({EMPTY, WALL_L, WAY1OUTR, WAY1INU, WALL_D}),
+				room({EMPTY, WAY1INL, WAY1OUTR, WALL_U, WALL_D}),
+				room({EMPTY, WAY1INL, WALL_R, WAY1OUTU, WALL_D}),
+				room({HIDDEN, KILL, WALL_L, WALL_R, WALL_D}),
+				room({HIDDEN, KILL, WALL_L, WALL_R, WAY1OUTU, WALL_D}),
+				room({EMPTY, WALL_L, WAY1OUTU, WALL_D}), //originally had another one of those 'lol' rooms that would call you a loser
+				room({KILL, WALL_R, WALL_U, WALL_D}),
+				room({WALL}), //row 9
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}) //row 10
+			};
+			break;
 		}
 		break;
 	}
