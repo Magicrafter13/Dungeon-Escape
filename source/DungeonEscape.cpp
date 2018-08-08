@@ -1,5 +1,6 @@
 #include "DungeonEscape.hpp"
 #include "levels.hpp"
+#include "static.hpp"
 
 #define MAX_SPRITES   88
 #define SCREEN_WIDTH  400
@@ -19,7 +20,7 @@ void draw_texture(size_t id, float x, float y, bool is_ui_element) {
 
 FILE *debug_file;
 
-u32 kDown, kHeld, kUp;
+u32 kDown, kHeld;
 
 touchPosition touch;
 
@@ -359,9 +360,7 @@ int main(int argc, char **argv)
 
 	srand(time(NULL));
 
-	hidScanInput();
-	kDown = hidKeysDown();
-	kHeld = hidKeysHeld();
+	getHidInputs(kDown, kHeld);
 
 	if ((kDown & KEY_X) || (kHeld & KEY_X)) {
 		debug = true;
@@ -390,10 +389,7 @@ int main(int argc, char **argv)
 	// Main loop
 	while (aptMainLoop()) {
 		if (current_state == "main_menu") {
-			hidScanInput();
-			kDown = hidKeysDown();
-			kHeld = hidKeysHeld();
-			kUp = hidKeysUp();
+			getHidInputs(kDown, kHeld);
 			if (kDown & KEY_START) {
 				chapter = 0;
 				lvl = 0;
@@ -591,9 +587,7 @@ int main(int argc, char **argv)
 				return 2;
 			}
 
-			hidScanInput();
-			kDown = hidKeysDown();
-			kHeld = hidKeysHeld();
+			getHidInputs(kDown, kHeld);
 
 			bool triggerKill = false;
 
@@ -981,8 +975,7 @@ int main(int argc, char **argv)
 			std::cout << "Press any key, or tap the bottom most\narea of the screen to exit the program.\n";
 			bool ready_exit = false;
 			while (!ready_exit) {
-				hidScanInput();
-				kDown = hidKeysDown();
+				getHidInputs(kDown, kHeld);
 				if (kDown & (KEY_A | KEY_B | KEY_Y | KEY_X | KEY_L | KEY_R | KEY_ZL | KEY_ZR | KEY_SELECT | KEY_START | KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN))
 					ready_exit = true;
 
