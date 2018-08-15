@@ -23,7 +23,8 @@ enum room_items {
 	FORCE_U = 43, FORCE_D = 44, FORCE_L = 45, FORCE_R = 46,
 	EXIT = 47, POWERUP = 48, HIDDEN = 49,
 	SPIKES = 50, CHEST = 51,
-	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55
+	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55,
+	UBER = 56
 };
 
 /// Powerups
@@ -33,6 +34,33 @@ enum powerup_enum {
 	//COINS already defined as 2
 	KEY = 3,
 	LIFE = 4
+};
+
+class special {
+public:
+	std::string type;
+	int var_id;
+	std::string action;
+	int int_value;
+	std::string string_value;
+	special(int fvar_id) {
+		type = "bool";
+		var_id = fvar_id;
+	}
+	/*please make the action "add" or "set"*/
+	special(int fvar_id, std::string faction, int value) {
+		type = "int";
+		var_id = fvar_id;
+		action = faction;
+		int_value = value;
+	}
+	/*please make the action "add" or "set"*/
+	special(int fvar_id, std::string faction, std::string value) {
+		type = "string";
+		var_id = fvar_id;
+		action = faction;
+		string_value = value;
+	}
 };
 
 class room {
@@ -50,6 +78,8 @@ public:
 	int powerup[2];
 	bool activates_multiple;
 	std::vector<int> rooms_activated;
+	bool has_special = false;
+	special special_data = special(0);
 	room(std::vector<int> fobjects) {
 		objects = fobjects;
 		dobjects = fobjects;
@@ -114,6 +144,24 @@ public:
 		powerup[1] = powerups[1];
 		dpowerup[1] = powerups[1];
 	}
+	room(std::vector<int> fobjects, special fspecial) {
+		objects = fobjects;
+		dobjects = fobjects;
+		special_data = fspecial;
+		has_special = true;
+	}
+	room(std::vector<int> fobjects_a, std::vector<int> fobjects_b, special fspecial, bool hbaa) {
+		objects = fobjects_a;
+		dobjects = fobjects_a;
+		before_activation = fobjects_a;
+		dbefore_activation = fobjects_a;
+		after_activation = fobjects_b;
+		dafter_activation = fobjects_b;
+		has_before_and_after = hbaa;
+		activates_multiple = false;
+		special_data = fspecial;
+		has_special = true;
+	}
 	void reset() {
 		objects = dobjects;
 		before_activation = dbefore_activation;
@@ -170,16 +218,40 @@ public:
 	}
 };
 
+class extra {
+public:
+	std::vector<bool> extra_bool;
+	std::vector<int> extra_int;
+	std::vector<std::string> extra_string;
+	extra(std::vector<bool> fbool) {
+		extra_bool = fbool;
+	}
+	extra(std::vector<int> fint) {
+		extra_int = fint;
+	}
+	extra(std::vector<std::string> fstring) {
+		extra_string = fstring;
+	}
+};
+
 class level {
 public:
 	int width;
 	int height;
+	extra extra_data = extra(std::vector<int>({ 0 }));
 	std::vector<room> rooms;
-	level(int fwidth, int fheight, std::vector<room> fdata) {
+	bool has_custom_function;
+	int custom_function;
+	level(int fwidth, int fheight, extra fextra, std::vector<room> fdata, bool fhas_custom_function, int fcustom_function) {
 		width = fwidth;
 		height = fheight;
+		extra_data = fextra;
 		rooms = fdata;
+		has_custom_function = fhas_custom_function;
+		custom_function = fcustom_function;
 	}
 };
+
+void custom_level_function(level &current_level);
 
 extern level getLevel(int chapter, int lvl);

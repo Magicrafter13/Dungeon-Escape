@@ -1,7 +1,7 @@
 #include "DungeonEscape.hpp"
 #include "levels.hpp"
 
-level return_data(0, 0, {room({ WALL })});
+level return_data(0, 0, extra(std::vector<bool>({ false })), {room({ WALL })}, false, 0);
 
 level getLevel(int chapter, int lvl) {
 	switch (chapter) {
@@ -41,7 +41,7 @@ level getLevel(int chapter, int lvl) {
 			room({ WALL }),
 			room({ EMPTY, WALL_L, SMALL_UP, WALL_D }),
 			room({ EMPTY, WALL_U, LOCK_R, SMALL_DOWN },{ EMPTY, WALL_U, /*UNLOCK_R,*/ SMALL_DOWN }, false),
-			room({ EXIT, WALL_U, WALL_D, WALL_R }),
+			room({ EXIT, WALL_U, WALL_D, LOCK_L, WALL_R }, { EXIT, WALL_U, WALL_D, WALL_R }, false),
 			room({ WALL }), //row 4
 			room({ EMPTY, WALL_L, WALL_R }),
 			room({ WALL }),
@@ -56,7 +56,7 @@ level getLevel(int chapter, int lvl) {
 			room({ WALL },{ EMPTY, WALL_R, WALL_D }, true), //room 43 (42 + 1)
 			room({ WALL_U, WALL_L, PRESSURE_PLATE },{ 34, 41, 42 }),
 			room({ EMPTY, WALL_U, WALL_D, SMALL_RIGHT }),
-			room({ CRAWL_LU, PRESSURE_PLATE }, 29),
+			room({ CRAWL_LU, PRESSURE_PLATE }, { 29, 30 }),
 			room({ WALL }),
 			room({ WALL }), //row 6
 			room({ EMPTY, WALL_L, WALL_R }),
@@ -92,6 +92,7 @@ level getLevel(int chapter, int lvl) {
 			room({ WALL }),
 			room({ WALL }) //row 10
 			};
+			return_data.has_custom_function = false;
 			break;
 		case 1:
 			return_data.width = 9;
@@ -116,7 +117,7 @@ level getLevel(int chapter, int lvl) {
 				room({ WALL }),
 				room({ WALL }), //row 2
 				room({ HIDDEN, WALL_U, WALL_L, WALL_R, KILL }),
-				room({ WALL_L, WALL_D, WALL_R, SMALL_UP }, new int[2]{ TINY, 3 }),
+				room({ WALL_L, WALL_D, WALL_R, SMALL_UP, POWERUP }, new int[2]{ TINY, 3 }),
 				room({ EMPTY, WALL_L, WALL_R }),
 				room({ HIDDEN, TELEPORT, WALL_L, WALL_U, WALL_R }, 24),
 				room({ SMALL_UP, WALL_L, WALL_D, SPIKES }),
@@ -179,6 +180,7 @@ level getLevel(int chapter, int lvl) {
 				room({ WALL }),
 				room({ WALL }) //row 9
 			};
+			return_data.has_custom_function = false;
 			break;
 		case 2:
 			return_data.width = 6;
@@ -245,6 +247,7 @@ level getLevel(int chapter, int lvl) {
 				room({ WALL }),
 				room({ WALL }) //row 10
 			};
+			return_data.has_custom_function = false;
 			break;
 		case 3:
 			return_data.width = 9;
@@ -263,40 +266,40 @@ level getLevel(int chapter, int lvl) {
 				room({WALL_U, WALL_L, WALL_D, START, WAY1INR}),
 				room({WALL_U, WAY1OUTL, WAY1INR, EMPTY}),
 				room({WAY1OUTL, WALL_U, WALL_D, EMPTY}, {WAY1INL, WALL_U, WALL_D, EMPTY, WALL_R}, true),
-				room({WALL_U, EMPTY, WAY1INR}, {WALL_U, WALL_L, WALL_D, EMPTY, WAY1INR}, true),
-				room({WALL_U, EMPTY, WALL_R, WAY1OUTL, WAY1IND}),
+				room({WALL_U, EMPTY, WAY1OUTR}, {WALL_U, WALL_L, WALL_D, EMPTY, WAY1OUTR}, true),
+				room({WALL_U, EMPTY, WALL_R, WAY1INL, WAY1IND}),
 				room({WALL_U, WALL_L, SPIKE_WALL_R, SPIKE_WALL_D, NULL_TELEPORT}),
 				room({SPIKE_WALL_L, SPIKE_WALL_D, WALL_U, WALL_R, NULL_TELEPORT}),
 				room({WALL}), //row 1
 				room({WALL}),
-				room({HIDDEN, WALL_L, WALL_U, WALL_D, WAY1INR, TELEPORT}, 66),
-				room({WAY1OUTL, WAY1OUTD, WALL_R, EMPTY}),
-				room({WALL_L, WALL_U, HIDDEN, WALL_R, WAY1IND, POWERUP}, new int[2]{COINS, 10}),
-				room({WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1OUTR}, {WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1OUTR, WALL_U}, true),
-				room({WAY1INL, WAY1OUTU, WALL_R, WALL_D, EMPTY}),
+				room({HIDDEN, WALL_L, WALL_U, WALL_D, WAY1OUTR, TELEPORT}, 66),
+				room({WAY1INL, WAY1IND, WALL_R, EMPTY}),
+				room({WALL_L, WALL_U, HIDDEN, WALL_R, WAY1OUTD, POWERUP}, new int[2]{COINS, 10}),
+				room({WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1INR}, {WALL_L, WALL_D, HIDDEN, PRESSURE_PLATE, WAY1OUTR, WALL_U}, true),
+				room({WAY1OUTL, WAY1OUTU, WALL_R, WALL_D, EMPTY}),
 				room({WALL_L, WALL_D, SPIKE_WALL_U, SPIKE_WALL_R, NULL_TELEPORT}),
 				room({WALL_D, WALL_R, SPIKE_WALL_L, SPIKE_WALL_U, NULL_TELEPORT}),
 				room({WALL}), //row 2
 				room({WALL}),
-				room({HIDDEN, WALL_L, WALL_U, WALL_D, TELEPORT, WAY1INR}, 15),
-				room({EMPTY, WAY1OUTL, WAY1OUTR, WAY1INU, WAY1IND}),
-				room({EMPTY, WAY1INL, WAY1OUTR, WAY1OUTU}),
-				room({HIDDEN, WAY1INL, WAY1OUTR, WALL_U, WALL_D, POWERUP}, new int[2]{TINY, 3}),
-				room({EMPTY, WAY1INL, WALL_R, WALL_U}),
-				room({TELEPORT, WALL_L, WALL_R, WALL_U, WAY1IND}, 25),
+				room({HIDDEN, WALL_L, WALL_U, WALL_D, TELEPORT, WAY1OUTR}, 15),
+				room({EMPTY, WAY1INL, WAY1INR, WAY1OUTU, WAY1OUTD}),
+				room({EMPTY, WAY1OUTL, WAY1INR, WAY1INU}),
+				room({HIDDEN, WAY1OUTL, WAY1INR, WALL_U, WALL_D, POWERUP}, new int[2]{TINY, 3}),
+				room({EMPTY, WAY1OUTL, WALL_R, WALL_U}),
+				room({TELEPORT, WALL_L, WALL_R, WALL_U, WAY1OUTD}, 25),
 				room({WALL}),
 				room({WALL}), //row 3
 				room({WALL}),
-				room({HIDDEN, WALL_L, WAY1INR, WALL_U, WAY1OUTD}), //originally had a "Monster Fight"
-				room({EMPTY, WAY1OUTL, WALL_R, WAY1OUTU}),
+				room({HIDDEN, WALL_L, WAY1OUTR, WALL_U, WAY1IND}), //originally had a "Monster Fight"
+				room({EMPTY, WAY1INL, WALL_R, WAY1INU}),
 				room({EMPTY, WALL_L, WALL_D}),
 				room({EMPTY, WALL_U}),
-				room({EMPTY, WALL_R, WALL_D}, {EMPTY, WALL_R}, true),
-				room({EMPTY, WALL_L, WAY1OUTU}, {EMPTY, WAY1OUTU}, true),
+				room({EMPTY, WALL_R, WALL_D}, {EMPTY, WALL_D}, true),
+				room({EMPTY, WALL_L, WAY1INU}, {EMPTY, WAY1INU}, true),
 				room({EMPTY, WALL_R, SPIKE_WALL_U}),
 				room({WALL}), //row 4
 				room({WALL}),
-				room({HIDDEN, POWERUP, WALL_L, WALL_R, WAY1INU, WAY1OUTD}, new int[2]{LIFE, 1}),
+				room({HIDDEN, POWERUP, WALL_L, WALL_R, WAY1OUTU, WAY1IND}, new int[2]{LIFE, 1}),
 				room({PRESSURE_PLATE, WALL_L, WALL_D}), //originally this pressure plate was labeled as 'secret', but uh... if there was a secret, I forgot what it was years ago. I'll put it here anyway to fuck with the players mind :p
 				room({EMPTY, WALL_R, WALL_U, WAY1OUTD}),
 				room({EMPTY, WALL_L}),
@@ -350,10 +353,102 @@ level getLevel(int chapter, int lvl) {
 				room({WALL}),
 				room({WALL}) //row 10
 			};
+			return_data.has_custom_function = false;
+			break;
+		case 4:
+			return_data.width = 8;
+			return_data.height = 8;
+			return_data.extra_data = extra(std::vector<bool>({ true, false, false }));
+			return_data.rooms = {
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}), //row 0
+				room({WALL}),
+				room({EMPTY, WALL_L, WALL_U}),
+				room({EMPTY, WALL_U, WALL_D}),
+				room({EMPTY, WALL_U}),
+				room({EMPTY, WAY1OUTR, WALL_U}),
+				room({START, WAY1INL, WALL_R, WALL_U, WALL_D}),
+				room({WALL}),
+				room({WALL}), //row 1
+				room({WALL}),
+				room({EMPTY, WALL_L, WALL_R}),
+				room({WALL}),
+				room({EMPTY, SPIKE_WALL_L, WALL_R}),
+				room({HIDDEN, WALL_L, WALL_R, WALL_D, UBER}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}), //row 2
+				room({WALL}),
+				room({EMPTY, WALL_L, WALL_D}),
+				room({EMPTY, WALL_R, WALL_U}),
+				room({EMPTY, WALL_L, WALL_D}),
+				room({EMPTY, WAY1INR, WALL_U, WAY1IND}),
+				room({EMPTY, WAY1OUTL, WALL_R, WALL_U}),
+				room({PRESSURE_PLATE, WALL_L, WALL_R, WALL_U}, special(2)),
+				room({WALL}), //row 3
+				room({WALL}),
+				room({PRESSURE_PLATE, WALL_L, WALL_R, WALL_U}, {PRESSURE_PLATE, WALL_L, WALL_R, WALL_U, WALL_D}, true, {33, 41, 49}),
+				room({EMPTY, WALL_L, SPIKE_WALL_R}),
+				room({WALL}),
+				room({HIDDEN, WALL_L, WALL_R, WAY1OUTU, WALL_D, KILL}),
+				room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L}, true),
+				room({WALL_R, WALL_D}),
+				room({WALL}), //row 4
+				room({WALL}),
+				room({PRESSURE_PLATE, WALL_L, WALL_R}, {WALL}, special(1), true),
+				room({EMPTY, WALL_L, SPIKE_WALL_R}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}, {EMPTY, SPIKE_WALL_L, WALL_R}, true),
+				room({WALL}),
+				room({WALL}), //row 5
+				room({WALL}),
+				room({EMPTY, WALL_L, WALL_D}, {EMPTY, WALL_L, WALL_U, WALL_D}, true),
+				room({EMPTY, WALL_D}),
+				room({PRESSURE_PLATE, SPIKE_WALL_R, SPIKE_WALL_U, WALL_D}, {33, 41, 49}),
+				room({WALL}),
+				room({EXIT, WALL_L, WALL_R, WALL_U, WALL_D}, {EXIT, WALL_L, WALL_R, WALL_D}, true),
+				room({WALL}),
+				room({WALL}), //row 6
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}),
+				room({WALL}) //row 7
+			};
+			return_data.has_custom_function = true;
+			return_data.custom_function = 0;
 			break;
 		}
 		break;
 	}
 	if (return_data.width == 0) error = true;
 	return return_data;
+}
+
+void custom_level_function(level &current_level) {
+	//I feel like this custom_level_function could be used to easily (well maybe not that easy) mod the game or just add future things into the code without having to complete change the way a
+	//room variable/object is created. Granted you wouldn't want to clutter this area up, because that could significantly affect the processing time, this is mainly for things that are almost 1 off's.
+	//which this whole: 2 pressure_plates activated to open a door is (so far) unique to this level. I also may have to change it more so that you can only toggle the variable to true when you stand on
+	//the pressure plate because I think that's how I originally invisioned it, and I didn't think about how after activating them maybe you could reactivate it to close it again.
+	switch (current_level.custom_function) {
+	case 0:
+		if (current_level.extra_data.extra_bool[1] && current_level.extra_data.extra_bool[2]) {
+			current_level.rooms[37].activate();
+			current_level.rooms[45].activate();
+			current_level.rooms[53].activate();
+			current_level.extra_data.extra_bool[1] = false;
+			current_level.extra_data.extra_bool[2] = false;
+		}
+		break;
+	}
 }

@@ -8,7 +8,8 @@
 
 size_t st_null = 0;
 
-std::string buildnumber = "18.06.17.1640";
+static std::string buildnumber = "18.06.17.1640";
+
 std::string current_state = "main_menu";
 
 static C2D_SpriteSheet spriteSheet;
@@ -28,8 +29,6 @@ PrintConsole bottomScreen, versionWin, killBox, debugBox;
 C3D_RenderTarget* top, *bot;
 
 FS_Archive sdmcArchive;
-
-size_t protected_textures = 0, textures = 0;
 
 std::string error_code;
 std::string error_message;
@@ -254,18 +253,6 @@ void closeSD()
 	FSUSER_CloseArchive(sdmcArchive);
 }
 
-/*returns if area is being touched by stylus*/
-bool touchInBox(touchPosition touch, int x, int y, int w, int h)
-{
-	int tx = touch.px;
-	int ty = touch.py;
-	kDown = hidKeysDown();
-	if (kDown & KEY_TOUCH && tx > x && tx < x + w && ty > y && ty < y + h)
-		return true;
-	else
-		return false;
-}
-
 player player1(-1, -1, 0);
 int lvl = 0;
 int chapter = 0;
@@ -309,7 +296,7 @@ void tryInventory(int selection) {
 	}
 }
 
-int level_count[8] = {
+static int level_count[8] = {
 	8,
 	0,
 	0,
@@ -382,7 +369,7 @@ int main(int argc, char **argv)
 	consoleSetWindow(&bottomScreen, 0, 0, 24, 26);
 	consoleSetWindow(&versionWin, 6, 26, 34, 4);
 	consoleSetWindow(&killBox, 0, 28, 40, 2);
-	consoleSetWindow(&debugBox, 24, 0, 17, 26);
+	consoleSetWindow(&debugBox, 24, 0, 16, 26);
 
 	int bottom_screen_text = 0;
 
@@ -460,7 +447,7 @@ int main(int argc, char **argv)
 			hidTouchRead(&touch);
 
 			/*exit game if red box touched*/
-			if (touchInBox(touch, 0, 224, 320, 16)) {
+			if (touchInBox(touch, 0, 224, 320, 16, kDown)) {
 				std::cout << "Exiting...\n";
 				break;
 			}
@@ -581,7 +568,7 @@ int main(int argc, char **argv)
 			hidTouchRead(&touch);
 
 			/*exit game if red box touched*/
-			if (touchInBox(touch, 0, 224, 320, 16)) {
+			if (touchInBox(touch, 0, 224, 320, 16, kDown)) {
 				consoleSelect(&bottomScreen);
 				std::cout << "Exiting...\n";
 				return 2;
@@ -814,18 +801,36 @@ int main(int argc, char **argv)
 				curRoom = &current_level.rooms[player1.location];
 				if (curRoom->hasObject(PRESSURE_PLATE)) {
 					echo_debug(true, "Pressure Plate activated\n", debug);
-					if (curRoom->activates_multiple) {
-						echo_debug(false, "Rooms:", debug);
-						for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++) {
-							current_level.rooms[curRoom->rooms_activated[i]].activate();
-							echo_debug(false, " " + std::to_string(curRoom->rooms_activated[i]), debug);
+					if (curRoom->has_special) {
+						if (curRoom->special_data.type == "bool")
+							current_level.extra_data.extra_bool[curRoom->special_data.var_id] = (current_level.extra_data.extra_bool[curRoom->special_data.var_id] ? false : true);
+						if (curRoom->special_data.type == "int") {
+							if (curRoom->special_data.action == "add")
+								current_level.extra_data.extra_int[curRoom->special_data.var_id] += curRoom->special_data.int_value;
+							else if (curRoom->special_data.action == "set")
+								current_level.extra_data.extra_int[curRoom->special_data.var_id] = curRoom->special_data.int_value;
+						}
+						if (curRoom->special_data.type == "string") {
+							if (curRoom->special_data.action == "ad")
+								current_level.extra_data.extra_string[curRoom->special_data.var_id] += curRoom->special_data.string_value;
+							else if (curRoom->special_data.action == "set")
+								current_level.extra_data.extra_string[curRoom->special_data.var_id] = curRoom->special_data.string_value;
 						}
 					}
 					else {
-						current_level.rooms[curRoom->activates_room].activate();
-						echo_debug(false, "Room: " + std::to_string(curRoom->activates_room), debug);
+						if (curRoom->activates_multiple) {
+							echo_debug(false, "Rooms:", debug);
+							for (unsigned int i = 0; i < curRoom->rooms_activated.size(); i++) {
+								current_level.rooms[curRoom->rooms_activated[i]].activate();
+								echo_debug(false, " " + std::to_string(curRoom->rooms_activated[i]), debug);
+							}
+						}
+						else {
+							current_level.rooms[curRoom->activates_room].activate();
+							echo_debug(false, "Room: " + std::to_string(curRoom->activates_room), debug);
+						}
+						echo_debug(false, "\n", debug);
 					}
-					echo_debug(false, "\n", debug);
 				}
 				if (curRoom->hasObject(POWERUP)) {
 					player1.addInventory(curRoom->powerup);
@@ -836,6 +841,10 @@ int main(int argc, char **argv)
 				if (!curRoom->hasObjectsOr({ CRAWL_4, CRAWL_LR, CRAWL_UD, CRAWL_LU, CRAWL_LD, CRAWL_RU, CRAWL_RD }) && player1.entered_small) {
 					player1.entered_small = false;
 					player1.is_tiny = false;
+				}
+				if (current_level.has_custom_function) {
+					custom_level_function(current_level);
+					echo_debug(true, "Running Custom Function " + std::to_string(current_level.custom_function) + "\n", debug);
 				}
 				if (curRoom->hasObjectsOr({ FORCE_U, FORCE_D, FORCE_L, FORCE_R })) {
 					player1.force_l = curRoom->hasObject(FORCE_L);
@@ -982,7 +991,7 @@ int main(int argc, char **argv)
 				hidTouchRead(&touch);
 
 				/*exit game if red box touched*/
-				if (touchInBox(touch, 0, 224, 320, 16)) {
+				if (touchInBox(touch, 0, 224, 320, 16, kDown)) {
 					std::cout << "Exiting...\n";
 					ready_exit = true;
 				}
