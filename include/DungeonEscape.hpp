@@ -26,8 +26,9 @@ extern bool error;
 
 extern size_t st_null;
 
-PrintConsole bottomScreen, versionWin, killBox, debugBox;
-std::vector<std::string> debug_log;
+extern PrintConsole bottomScreen, versionWin, killBox, debugBox;
+
+extern std::vector<std::string> debug_log;
 
 #define game_data_size 1
 

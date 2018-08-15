@@ -4,7 +4,7 @@
 enum room_items {
 	WALL = 0,
 	EMPTY = 1,
-	COINS = 2,
+	UBER = 2,
 	KILL = 3,
 	WAY1INL = 4, WAY1INR = 5, WAY1INU = 6, WAY1IND = 7,
 	WAY1OUTL = 8, WAY1OUTR = 9, WAY1OUTU = 10, WAY1OUTD = 11,
@@ -23,17 +23,16 @@ enum room_items {
 	FORCE_U = 43, FORCE_D = 44, FORCE_L = 45, FORCE_R = 46,
 	EXIT = 47, POWERUP = 48, HIDDEN = 49,
 	SPIKES = 50, CHEST = 51,
-	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55,
-	UBER = 56
+	SPIKE_WALL_L = 52, SPIKE_WALL_R = 53, SPIKE_WALL_U = 54, SPIKE_WALL_D = 55
 };
 
 /// Powerups
 enum powerup_enum {
 	TINY = 0,
 	CROUCH = 1,
-	//COINS already defined as 2
-	KEY = 3,
-	LIFE = 4
+	LIFE = 24,
+	COINS = 25,
+	KEY = 26
 };
 
 class special {

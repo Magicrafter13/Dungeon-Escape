@@ -25,12 +25,13 @@ u32 kDown, kHeld;
 
 touchPosition touch;
 
+PrintConsole bottomScreen, versionWin, killBox, debugBox;
+
 C3D_RenderTarget* top, *bot;
 
 FS_Archive sdmcArchive;
 
-std::string error_code;
-std::string error_message;
+std::string error_code, error_message;
 std::vector<std::string> debug_log{
 	"Debugger started:\n",
 	""
@@ -44,7 +45,6 @@ killID,
 way1inlID, way1inrID, way1inuID, way1indID,
 way1outlID, way1outrID, way1outuID, way1outdID,
 wall_lID, wall_rID, wall_uID, wall_dID,
-//wall_connector_lID, wall_connector_rID, wall_connector_uID, wall_connector_dID,
 startID,
 crawl_lrID, crawl_udID,
 crawl_luID, crawl_ldID,
@@ -62,7 +62,8 @@ error_50x50, emptyID, floorID,
 small_invID, none_leftID, counterID, player_smallID, endID,
 spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID,
 empty_corner_lu, empty_corner_ld, empty_corner_ru, empty_corner_rd,
-wall_corner_lu, wall_corner_ld, wall_corner_ru, wall_corner_rd;
+wall_corner_lu, wall_corner_ld, wall_corner_ru, wall_corner_rd,
+life_invID, coins_invID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 void init_textures() {
@@ -72,8 +73,7 @@ void init_textures() {
 	way1inlID = sprites_way1inl_idx; way1inrID = sprites_way1inr_idx; way1inuID = sprites_way1inu_idx; way1indID = sprites_way1ind_idx;
 	way1outlID = sprites_way1outl_idx; way1outrID = sprites_way1outr_idx; way1outuID = sprites_way1outu_idx; way1outdID = sprites_way1outd_idx;
 	wall_lID = sprites_wall_l_idx; wall_rID = sprites_wall_r_idx; wall_uID = sprites_wall_u_idx; wall_dID = sprites_wall_d_idx;
-	//wall_connector_lID = sprites_wall_connector_l_idx; wall_connector_rID = sprites_wall_connector_r_idx; wall_connector_uID = sprites_wall_connector_u_idx; wall_connector_dID = sprites_wall_connector_d_idx;
-	empty_corner_lu = sprites_corner_lu_idx; empty_corner_ld = sprites_corner_lu_idx; empty_corner_ru = sprites_corner_ru_idx; empty_corner_rd = sprites_corner_rd_idx;
+	empty_corner_lu = sprites_corner_lu_idx; empty_corner_ld = sprites_corner_ld_idx; empty_corner_ru = sprites_corner_ru_idx; empty_corner_rd = sprites_corner_rd_idx;
 	wall_corner_lu = sprites_wall_corner_lu_idx; wall_corner_ld = sprites_wall_corner_ld_idx; wall_corner_ru = sprites_wall_corner_ru_idx; wall_corner_rd = sprites_wall_corner_rd_idx;
 	startID = 0;
 	crawl_lrID = sprites_crawl_lr_idx; crawl_udID = sprites_crawl_ud_idx;
@@ -94,6 +94,7 @@ void init_textures() {
 	nxx[0] = ui_0xx_idx; nxx[1] = ui_1xx_idx; nxx[2] = ui_2xx_idx; nxx[3] = ui_3xx_idx; nxx[4] = ui_4xx_idx; nxx[5] = ui_5xx_idx; nxx[6] = ui_6xx_idx; nxx[7] = ui_7xx_idx; nxx[8] = ui_8xx_idx; nxx[9] = ui_9xx_idx;
 	xnx[0] = ui_x0x_idx; xnx[1] = ui_x1x_idx; xnx[2] = ui_x2x_idx; xnx[3] = ui_x3x_idx; xnx[4] = ui_x4x_idx; xnx[5] = ui_x5x_idx; xnx[6] = ui_x6x_idx; xnx[7] = ui_x7x_idx; xnx[8] = ui_x8x_idx; xnx[9] = ui_x9x_idx;
 	xxn[0] = ui_xx0_idx; xxn[1] = ui_xx1_idx; xxn[2] = ui_xx2_idx; xxn[3] = ui_xx3_idx; xxn[4] = ui_xx4_idx; xxn[5] = ui_xx5_idx; xxn[6] = ui_xx6_idx; xxn[7] = ui_xx7_idx; xxn[8] = ui_xx8_idx; xxn[9] = ui_xx9_idx;
+	life_invID = ui_life_inv_idx; coins_invID = ui_coins_inv_idx;
 }
 
 int pause_arrow[2][4] = {
@@ -154,6 +155,8 @@ class player {
 	int default_texture;
 	int default_location;
 public:
+	int coins = 0;
+	int keys = 0;
 	int x;
 	int y;
 	int texture;
@@ -162,9 +165,7 @@ public:
 	std::vector<int> objects;
 	std::vector<int> inventory = {
 		0, //TINY/SMALL
-		0, //CRAWL
-		0,
-		0,
+		0, //CRAWL - Probably change to an "invincibility" powerup
 		0,
 		0,
 		0,
@@ -266,7 +267,7 @@ std::string paused_level = "top";
 bool inventory = false;
 int inventory_selection = 0;
 
-int inventoryItem(int powerup) {
+size_t inventoryItem(int powerup) {
 	switch (powerup) {
 	case 0: return getTexID(TINY);
 	case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:
@@ -547,7 +548,7 @@ int main(int argc, char **argv)
 				draw_texture(inventoryID, 0, 0, true);
 				int selector = 0;
 				for (int y = 0; y < 4; y++) {
-					for (int x = 0; x < 8; x++) {
+					for (int x = 0; x < 6; x++) {
 						draw_texture(inventoryItem(selector), x * 50, (y * 50) + 40, true);
 						if (selector == inventory_selection)
 							draw_texture(inventory_selectedID, x * 50, (y * 50) + 40, true);
@@ -557,20 +558,26 @@ int main(int argc, char **argv)
 						selector++;
 					}
 				}
-				draw_texture(inventoryItem(inventory_selection), 6 * 50, (3 * 50) + 40, true);
-				draw_texture(counterID, 7 * 50, (3 * 50) + 40, true);
-				std::string temp_numbers = "";
-				if (player1.inventory[inventory_selection] < 100)
-					temp_numbers += "0";
-				if (player1.inventory[inventory_selection] < 10)
-					temp_numbers += "0";
-				temp_numbers += std::to_string(player1.inventory[inventory_selection]);
-				int first = temp_numbers.at(0) - '0';
-				int second = temp_numbers.at(1) - '0';
-				int third = temp_numbers.at(2) - '0';
-				draw_texture(nxx[first], 7 * 50, (3 * 50) + 40, true);
-				draw_texture(xnx[second], 7 * 50, (3 * 50) + 40, true);
-				draw_texture(xxn[third], 7 * 50, (3 * 50) + 40, true);
+				std::vector<int> side_values = { player1.lives, player1.coins, NULL, player1.inventory[inventory_selection] };
+				std::vector<size_t> side_sprites = { life_invID, coins_invID, NULL, inventoryItem(inventory_selection) };
+				for (int counter = 0; counter < side_values.size(); counter++) {
+					if (counter != 2) { //temporary, until a third thing to have counted is added
+						std::string temp_numbers = "";
+						if (side_values[counter] < 100)
+							temp_numbers += "0";
+						if (side_values[counter] < 10)
+							temp_numbers += "0";
+						temp_numbers += std::to_string(side_values[counter]);
+						int first = temp_numbers.at(0) - '0';
+						int second = temp_numbers.at(1) - '0';
+						int third = temp_numbers.at(2) - '0';
+						draw_texture(counterID, 7 * 50, (counter * 50) + 40, true);
+						draw_texture(nxx[first], 7 * 50, (counter * 50) + 40, true);
+						draw_texture(xnx[second], 7 * 50, (counter * 50) + 40, true);
+						draw_texture(xxn[third], 7 * 50, (counter * 50) + 40, true);
+						draw_texture(side_sprites[counter], 6 * 50, (counter * 50) + 40, true);
+					}
+				}
 			}
 			if (!debug) {
 				//draw to bottom screen
@@ -629,9 +636,9 @@ int main(int argc, char **argv)
 				if (kDown & KEY_B)
 					inventory = false;
 				else if (kDown & KEY_UP)
-					inventory_selection -= 8;
+					inventory_selection -= 6;
 				else if (kDown & KEY_DOWN)
-					inventory_selection += 8;
+					inventory_selection += 6;
 				else if (kDown & KEY_LEFT)
 					inventory_selection--;
 				else if (kDown & KEY_RIGHT)
@@ -640,8 +647,8 @@ int main(int argc, char **argv)
 					tryInventory(inventory_selection);
 				if (inventory_selection <= -1)
 					inventory_selection = 0;
-				if (inventory_selection >= player1.inventory.size())
-					inventory_selection = player1.inventory.size() - 1;
+				if (inventory_selection >= player1.inventory.size() - 3)
+					inventory_selection = player1.inventory.size() - 4;
 				if (kDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) echo_debug(false, "sel: " + std::to_string(inventory_selection) + "\n", debug);
 			}
 			else {
@@ -823,6 +830,7 @@ int main(int argc, char **argv)
 							echo_debug(false, "extra_bool[" + std::to_string(var_id) + "]\n  From: " + std::string(extra_data->extra_bool[var_id] ? "true" : "false") + "\n", debug);
 							extra_data->extra_bool[var_id] = (extra_data->extra_bool[var_id] ? false : true);
 							echo_debug(false, "  To: " + std::string(extra_data->extra_bool[var_id] ? "true" : "false") + "\n", debug);
+						}
 						if (special_data->type == "int") {
 							echo_debug(false, "Action: " + special_data->action + "\n", debug);
 							if (special_data->action == "add") {
@@ -885,6 +893,24 @@ int main(int argc, char **argv)
 					player1.force_u = curRoom->hasObject(FORCE_U);
 					echo_debug(true, "Player forced in [D]irection\n", debug);
 					echo_debug(false, "D = " + std::string(player1.force_l ? "Left" : (player1.force_r ? "Right" : (player1.force_u ? "Up" : "Down"))) + "\n", debug);
+				}
+				if (player1.inventory[24] > 0) {
+					echo_debug(true, "Moving Lives\n", debug);
+					echo_debug(false, "Player had " + std::to_string(player1.inventory[24]) + "\nLives in Inv'", debug);
+					player1.lives += player1.inventory[24];
+					player1.inventory[24] = 0;
+				}
+				if (player1.inventory[25] > 0) {
+					echo_debug(true, "Moving Coins\n", debug);
+					echo_debug(false, "Player had " + std::to_string(player1.inventory[25]) + "\nCoins in Inv'", debug);
+					player1.coins += player1.inventory[25];
+					player1.inventory[25] = 0;
+				}
+				if (player1.inventory[26] > 0) {
+					echo_debug(true, "Moving Keys\n", debug);
+					echo_debug(false, "Player had " + std::to_string(player1.inventory[26]) + "\nKeys in Inv'", debug);
+					player1.keys += player1.inventory[26];
+					player1.inventory[26] = 0;
 				}
 				if (curRoom->hasObject(KILL) || triggerKill) {
 					int lives = player1.lives - 1;
