@@ -4,3 +4,5 @@
 void getHidInputs(u32 &kDown, u32 &kHeld);
 
 bool touchInBox(touchPosition touch, int x, int y, int w, int h, u32 &kDown);
+
+void echo_debug(bool main_window, std::string output, bool debugger_is_active);

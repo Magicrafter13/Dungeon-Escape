@@ -17,3 +17,11 @@ bool touchInBox(touchPosition touch, int x, int y, int w, int h, u32 &kDown)
 	else
 		return false;
 }
+
+void echo_debug(bool main_window, std::string output, bool debugger_is_active) { //2nd bool just helps simplify code
+	if (debugger_is_active) {
+		consoleSelect(main_window ? &bottomScreen : &debugBox);
+		std::cout << output;
+		debug_log[main_window ? 0 : 1] += output;
+	}
+}

@@ -45,7 +45,7 @@ killID,
 way1inlID, way1inrID, way1inuID, way1indID,
 way1outlID, way1outrID, way1outuID, way1outdID,
 wall_lID, wall_rID, wall_uID, wall_dID,
-wall_connector_lID, wall_connector_rID, wall_connector_uID, wall_connector_dID,
+//wall_connector_lID, wall_connector_rID, wall_connector_uID, wall_connector_dID,
 startID,
 crawl_lrID, crawl_udID,
 crawl_luID, crawl_ldID,
@@ -61,7 +61,9 @@ titleID, inventoryID, inventory_selectedID,
 pause_scr, pause_cursor,
 error_50x50, emptyID, floorID,
 small_invID, none_leftID, counterID, player_smallID, endID,
-spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID;
+spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID,
+empty_corner_lu, empty_corner_ld, empty_corner_ru, empty_corner_rd,
+wall_corner_lu, wall_corner_ld, wall_corner_ru, wall_corner_rd;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 void init_textures() {
@@ -71,7 +73,9 @@ void init_textures() {
 	way1inlID = sprites_way1inl_idx; way1inrID = sprites_way1inr_idx; way1inuID = sprites_way1inu_idx; way1indID = sprites_way1ind_idx;
 	way1outlID = sprites_way1outl_idx; way1outrID = sprites_way1outr_idx; way1outuID = sprites_way1outu_idx; way1outdID = sprites_way1outd_idx;
 	wall_lID = sprites_wall_l_idx; wall_rID = sprites_wall_r_idx; wall_uID = sprites_wall_u_idx; wall_dID = sprites_wall_d_idx;
-	wall_connector_lID = sprites_wall_connector_l_idx; wall_connector_rID = sprites_wall_connector_r_idx; wall_connector_uID = sprites_wall_connector_u_idx; wall_connector_dID = sprites_wall_connector_d_idx;
+	//wall_connector_lID = sprites_wall_connector_l_idx; wall_connector_rID = sprites_wall_connector_r_idx; wall_connector_uID = sprites_wall_connector_u_idx; wall_connector_dID = sprites_wall_connector_d_idx;
+	empty_corner_lu = sprites_corner_lu_idx; empty_corner_ld = sprites_corner_lu_idx; empty_corner_ru = sprites_corner_ru_idx; empty_corner_rd = sprites_corner_rd_idx;
+	wall_corner_lu = sprites_wall_corner_lu_idx; wall_corner_ld = sprites_wall_corner_ld_idx; wall_corner_ru = sprites_wall_corner_ru_idx; wall_corner_rd = sprites_wall_corner_rd_idx;
 	startID = 0;
 	crawl_lrID = sprites_crawl_lr_idx; crawl_udID = sprites_crawl_ud_idx;
 	crawl_luID = sprites_crawl_lu_idx; crawl_ldID = sprites_crawl_ld_idx;
@@ -262,14 +266,6 @@ int paused_selection = 0;
 std::string paused_level = "top";
 bool inventory = false;
 int inventory_selection = 0;
-
-void echo_debug(bool main_window, std::string output, bool debugger_is_active) { //2nd bool just helps simplify code
-	if (debugger_is_active) {
-		consoleSelect(main_window ? &bottomScreen : &debugBox);
-		std::cout << output;
-		debug_log[main_window ? 0 : 1] += output;
-	}
-}
 
 int inventoryItem(int powerup) {
 	switch (powerup) {
@@ -476,8 +472,37 @@ int main(int argc, char **argv)
 							POWERUP, KILL, EXIT
 						};
 						for (unsigned int i = 0; i < item_arr.size(); i++) {
-							if (current_level.rooms[tRoom].hasObject(item_arr[i]))
-								draw_texture(getTexID(item_arr[i]), rel_x * 80, rel_y * 80, false);
+							if (current_level.rooms[tRoom].hasObject(item_arr[i])) {
+								int pos_add_x = (item_arr[i] == WALL_R ? 70 : 0);
+								int pos_add_y = (item_arr[i] == WALL_D ? 70 : 0);
+								draw_texture(getTexID(item_arr[i]), rel_x * 80 + pos_add_x, rel_y * 80 + pos_add_y, false);
+							}
+						}
+						if (!current_level.rooms[tRoom].hasObject(WALL)) {
+							if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_L, SPIKE_WALL_L })) {
+								if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_U, SPIKE_WALL_U }))
+									draw_texture(wall_corner_lu, rel_x * 80, rel_y * 80, false);
+								if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_D, SPIKE_WALL_D }))
+									draw_texture(wall_corner_ld, rel_x * 80, rel_y * 80 + 70, false);
+							}
+							if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_R, SPIKE_WALL_R })) {
+								if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_U, SPIKE_WALL_U }))
+									draw_texture(wall_corner_ru, rel_x * 80 + 70, rel_y * 80, false);
+								if (!current_level.rooms[tRoom].hasObjectsOr({ WALL_D, SPIKE_WALL_D }))
+									draw_texture(wall_corner_rd, rel_x * 80 + 70, rel_y * 80 + 70, false);
+							}
+							if (current_level.rooms[tRoom].hasObject(WALL_L)) {
+								if (current_level.rooms[tRoom].hasObject(WALL_U))
+									draw_texture(empty_corner_lu, rel_x * 80 + 10, rel_y * 80 + 10, false);
+								if (current_level.rooms[tRoom].hasObject(WALL_D))
+									draw_texture(empty_corner_ld, rel_x * 80 + 10, rel_y * 80 + 60, false);
+							}
+							if (current_level.rooms[tRoom].hasObject(WALL_R)) {
+								if (current_level.rooms[tRoom].hasObject(WALL_U))
+									draw_texture(empty_corner_ru, rel_x * 80 + 60, rel_y * 80 + 10, false);
+								if (current_level.rooms[tRoom].hasObject(WALL_D))
+									draw_texture(empty_corner_rd, rel_x * 80 + 60, rel_y * 80 + 60, false);
+							}
 						}
 						if (current_level.rooms[tRoom].hasObject(LOCK_L)) {
 							draw_texture(lock_lID, 80 * rel_x, 80 * rel_y, false);
@@ -496,18 +521,6 @@ int main(int argc, char **argv)
 							draw_texture(lock_uID, 80 * rel_x, 80 * (rel_y + 1), false);
 						}
 					}
-					if (current_level.rooms[tRoom].hasObject(WALL_L) && tRoom - current_level.width >= 0)
-						if (current_level.rooms[tRoom - current_level.width].hasObject(WALL_L))
-							draw_texture(wall_connector_lID, (rel_x * 80), ((rel_y * 80) - 10), false);
-					if (current_level.rooms[tRoom].hasObject(WALL_R) && tRoom - current_level.width >= 0)
-						if (current_level.rooms[tRoom - current_level.width].hasObject(WALL_R))
-							draw_texture(wall_connector_rID, ((rel_x * 80) + 65), ((rel_y * 80) - 10), false);
-					if (current_level.rooms[tRoom].hasObject(WALL_U) && tRoom - 1 >= 0)
-						if (current_level.rooms[tRoom - 1].hasObject(WALL_U))
-							draw_texture(wall_connector_uID, ((rel_x * 80) - 10), (rel_y * 80), false);
-					if (current_level.rooms[tRoom].hasObject(WALL_D) && tRoom - 1 >= 0)
-						if (current_level.rooms[tRoom - 1].hasObject(WALL_D))
-							draw_texture(wall_connector_dID, ((rel_x * 80) - 10), ((rel_y * 80) + 65), false);
 					if (current_level.rooms[tRoom].hasObject(WALL) && !player1.hidden_map[tRoom])
 						draw_texture(wallID, 80 * rel_x, 80 * rel_y, false);
 					tRoom++;
@@ -802,19 +815,39 @@ int main(int argc, char **argv)
 				if (curRoom->hasObject(PRESSURE_PLATE)) {
 					echo_debug(true, "Pressure Plate activated\n", debug);
 					if (curRoom->has_special) {
-						if (curRoom->special_data.type == "bool")
-							current_level.extra_data.extra_bool[curRoom->special_data.var_id] = (current_level.extra_data.extra_bool[curRoom->special_data.var_id] ? false : true);
-						if (curRoom->special_data.type == "int") {
-							if (curRoom->special_data.action == "add")
-								current_level.extra_data.extra_int[curRoom->special_data.var_id] += curRoom->special_data.int_value;
-							else if (curRoom->special_data.action == "set")
-								current_level.extra_data.extra_int[curRoom->special_data.var_id] = curRoom->special_data.int_value;
+						special* special_data = &curRoom->special_data;
+						extra* extra_data = &current_level.extra_data;
+						int var_id = curRoom->special_data.var_id;
+						echo_debug(true, "Room has Special Action\n", debug);
+						echo_debug(false, "Special Type: " + curRoom->special_data.type + "\n", debug);
+						if (special_data->type == "bool") {
+							echo_debug(false, "extra_bool[" + std::to_string(var_id) + "]\n  From: " + std::string(extra_data->extra_bool[var_id] ? "true" : "false") + "\n", debug);
+							extra_data->extra_bool[var_id] = (extra_data->extra_bool[var_id] ? false : true);
+							echo_debug(false, "  To: " + std::string(extra_data->extra_bool[var_id] ? "true" : "false") + "\n", debug);
+						if (special_data->type == "int") {
+							echo_debug(false, "Action: " + special_data->action + "\n", debug);
+							if (special_data->action == "add") {
+								echo_debug(false, "extra_int[" + std::to_string(var_id) + "]\n  From: " + std::to_string(extra_data->extra_int[var_id]) + "\n", debug);
+								extra_data->extra_int[var_id] += special_data->int_value;
+								echo_debug(false, "  To: " + std::to_string(extra_data->extra_int[var_id]) + "\n", debug);
+							}
+							else if (special_data->action == "set") {
+								echo_debug(false, "extra_int[" + std::to_string(var_id) + "]\n  From: " + std::to_string(extra_data->extra_int[var_id]) + "\n", debug);
+								extra_data->extra_int[var_id] = special_data->int_value;
+								echo_debug(false, "  To: " + std::to_string(extra_data->extra_int[var_id]) + "\n", debug);
+							}
 						}
-						if (curRoom->special_data.type == "string") {
-							if (curRoom->special_data.action == "ad")
-								current_level.extra_data.extra_string[curRoom->special_data.var_id] += curRoom->special_data.string_value;
-							else if (curRoom->special_data.action == "set")
-								current_level.extra_data.extra_string[curRoom->special_data.var_id] = curRoom->special_data.string_value;
+						if (special_data->type == "string") {
+							if (special_data->action == "add") {
+								echo_debug(false, "extra_string[" + std::to_string(var_id) + "]\n  From: " + extra_data->extra_string[var_id] + "\n", debug);
+								extra_data->extra_string[var_id] += special_data->string_value;
+								echo_debug(false, "  To: " + extra_data->extra_string[var_id] + "\n", debug);
+							}
+							else if (special_data->action == "set") {
+								echo_debug(false, "extra_string[" + std::to_string(var_id) + "]\n  From: " + extra_data->extra_string[var_id] + "\n", debug);
+								extra_data->extra_string[var_id] = special_data->string_value;
+								echo_debug(false, "  To: " + extra_data->extra_string[var_id] + "\n", debug);
+							}
 						}
 					}
 					else {
