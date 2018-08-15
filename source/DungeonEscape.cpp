@@ -25,7 +25,6 @@ u32 kDown, kHeld;
 
 touchPosition touch;
 
-PrintConsole bottomScreen, versionWin, killBox, debugBox;
 C3D_RenderTarget* top, *bot;
 
 FS_Archive sdmcArchive;
