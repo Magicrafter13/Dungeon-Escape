@@ -63,7 +63,7 @@ small_invID, none_leftID, counterID, player_smallID, endID,
 spike_wall_lID, spike_wall_rID, spike_wall_uID, spike_wall_dID,
 empty_corner_lu, empty_corner_ld, empty_corner_ru, empty_corner_rd,
 wall_corner_lu, wall_corner_ld, wall_corner_ru, wall_corner_rd,
-life_invID, coins_invID;
+life_invID, coins_invID, inv_invID;
 std::vector<size_t> ps_arrow(4), nxx(10), xnx(10), xxn(10);
 
 void init_textures() {
@@ -94,7 +94,7 @@ void init_textures() {
 	nxx[0] = ui_0xx_idx; nxx[1] = ui_1xx_idx; nxx[2] = ui_2xx_idx; nxx[3] = ui_3xx_idx; nxx[4] = ui_4xx_idx; nxx[5] = ui_5xx_idx; nxx[6] = ui_6xx_idx; nxx[7] = ui_7xx_idx; nxx[8] = ui_8xx_idx; nxx[9] = ui_9xx_idx;
 	xnx[0] = ui_x0x_idx; xnx[1] = ui_x1x_idx; xnx[2] = ui_x2x_idx; xnx[3] = ui_x3x_idx; xnx[4] = ui_x4x_idx; xnx[5] = ui_x5x_idx; xnx[6] = ui_x6x_idx; xnx[7] = ui_x7x_idx; xnx[8] = ui_x8x_idx; xnx[9] = ui_x9x_idx;
 	xxn[0] = ui_xx0_idx; xxn[1] = ui_xx1_idx; xxn[2] = ui_xx2_idx; xxn[3] = ui_xx3_idx; xxn[4] = ui_xx4_idx; xxn[5] = ui_xx5_idx; xxn[6] = ui_xx6_idx; xxn[7] = ui_xx7_idx; xxn[8] = ui_xx8_idx; xxn[9] = ui_xx9_idx;
-	life_invID = ui_life_inv_idx; coins_invID = ui_coins_inv_idx;
+	life_invID = ui_life_inv_idx; coins_invID = ui_coins_inv_idx; inv_invID = ui_invincible_inv_idx;
 }
 
 int pause_arrow[2][4] = {
@@ -145,6 +145,7 @@ size_t getTexID(room_items item) {
 size_t getTexID(powerup_enum item) {
 	switch (item) {
 	case TINY: return small_invID;
+	case CROUCH: return inv_invID;
 	default: return error_50x50;
 	}
 }
@@ -268,13 +269,15 @@ bool inventory = false;
 int inventory_selection = 0;
 
 size_t inventoryItem(int powerup) {
-	switch (powerup) {
+	return getTexID((powerup_enum) powerup);
+	/*switch (powerup) {
 	case 0: return getTexID(TINY);
+	case 1: return getTexID(CROUCH);
 	case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15:
 	case 16: case 17: case 18: case 19: case 20: case 21: case 22: case 23: case 24: case 25: case 26:
 	case 27: case 28: case 29: case 30: case 31: return emptyID;
 	default: return error_50x50;
-	}
+	}*/
 }
 
 void tryInventory(int selection) {
@@ -647,8 +650,8 @@ int main(int argc, char **argv)
 					tryInventory(inventory_selection);
 				if (inventory_selection <= -1)
 					inventory_selection = 0;
-				if (inventory_selection >= player1.inventory.size() - 3)
-					inventory_selection = player1.inventory.size() - 4;
+				if (inventory_selection >= player1.inventory.size() - 4)
+					inventory_selection = player1.inventory.size() - 5;
 				if (kDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) echo_debug(false, "sel: " + std::to_string(inventory_selection) + "\n", debug);
 			}
 			else {
